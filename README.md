@@ -1,43 +1,122 @@
-# Astro Starter Kit: Minimal
+## huhugerman-portal
 
-```sh
-npm create astro@latest -- --template minimal
+A mobile-first, operational frontend portal for German language courses.
+Designed to minimize cognitive load for students while acting as a clear presentation layer for backend automation and technical documentation.
+
+This repository represents the **student-facing interface** of the huhugerman ecosystem.
+
+---
+
+## 🎯 Project Purpose
+
+The portal is designed under a **Customer Success Engineering mindset**, applied to education:
+
+* **Zero Friction Access**
+  Students reach courses, forms, and materials without navigation overhead.
+
+* **Cognitive Clarity**
+  A minimalist UI focused on learning outcomes, not interface exploration.
+
+* **Operational Transparency**
+  Frontend actions map directly to backend automations (intake, tracking, progression).
+
+---
+
+## 🧠 Design Principles
+
+1. **Simple-First**
+   Reduced component surface area to lower maintenance and onboarding cost.
+
+2. **Functional-First**
+   Every UI element exists to support a concrete learning or operational goal.
+
+3. **Mobile-First**
+   The layout is optimized for small screens first, then progressively enhanced.
+
+4. **Linear Flow (No Navbar)**
+   Navigation is replaced by contextual CTAs to avoid decision fatigue.
+
+---
+
+## 🏗️ Technical Stack
+
+* **Framework:** [Astro](https://astro.build/)
+  Static-first architecture for speed, SEO, and long-term stability.
+
+* **Styling:** Native CSS3
+  Custom design system (dark mode, minimal, functional).
+
+* **Deployment:** [Vercel](https://vercel.com/)
+  Edge-ready, Git-based deployments.
+
+* **Forms & Automation:** Google Apps Script (GAS)
+  Used for intake, credential handling, and backend workflows.
+
+---
+
+## 🧩 Architecture Overview
+
+* **Home**
+
+  * Two primary course cards (Alemán 1, Alemán 2)
+  * Inline disclosure of intake forms via `<details>`
+
+* **Roadmap**
+
+  * 10-week asynchronous reinforcement structure
+  * Mirrors in-person sessions (Monday & Wednesday)
+
+* **Toolbox**
+
+  * Curated external linguistic resources
+  * No content duplication, only trusted references
+
+---
+
+## 🔗 Ecosystem Relationship
+
+This frontend is conceptually and operationally coupled with:
+
+👉 **[huhugerman-cse](https://github.com/yassergandhi/huhugerman-cse)**
+
+That repository contains:
+
+* Business logic
+* Automation scripts
+* Operational documentation
+* CSE-oriented architectural decisions
+
+This portal acts as the **presentation layer** of that system.
+
+---
+
+## 🛠️ Local Development
+
+```bash
+# Clone repository
+git clone https://github.com/yassergandhi/huhugerman-portal.git
+
+# Install dependencies
+npm install
+
+# Run local dev server
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Astro will start a local server with hot reload enabled.
 
-## 🚀 Project Structure
+---
 
-Inside of your Astro project, you'll see the following folders and files:
+## 🚀 Deployment
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+The project is deployed via **Vercel**, using Git-based continuous deployment.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Domain management is handled through **Cloudflare DNS**.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+---
 
-Any static assets, like images, can be placed in the `public/` directory.
+## 📄 License
 
-## 🧞 Commands
+Private / Educational use.
+All rights reserved.
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).

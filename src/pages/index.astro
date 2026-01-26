@@ -1,17 +1,22 @@
 ---
-
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CourseCard from '../components/CourseCard.astro';
+import Roadmap from '../components/Roadmap.astro';
+import Toolbox from '../components/Toolbox.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Portal">
+  <div class="courses-grid">
+    <CourseCard 
+      title="Alemán 1" 
+      description="Primer contacto con el alemán. Aquí consolidarás las bases vistas en clase: estructuras esenciales, vocabulario clave y comprensión inicial."
+    />
+    <CourseCard 
+      title="Alemán 2" 
+      description="Continuación del proceso. Refuerza lo aprendido y avanza hacia una comunicación más fluida con estructuras más complejas y uso del pasado."
+    />
+  </div>
+
+  <Roadmap />
+  <Toolbox />
+</BaseLayout>

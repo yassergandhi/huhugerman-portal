@@ -1,0 +1,309 @@
+/* ===============================
+   GLOBAL DESIGN SYSTEM
+   =============================== */
+
+:root {
+  /* 2026 Synthwave Edition */
+  --bg-color: #0b021d;
+  --surface-color: #160a2f;
+  --text-primary: #ffffff;
+  --text-secondary: #aed7f5;
+
+  --accent-primary: #2ef99e;
+  --accent-secondary: #64e232;
+
+  --border-color: #2d1b54;
+
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --max-width-mobile: 640px;
+  --max-width-desktop: 900px;
+}
+
+/* ===============================
+   RESET & BASE
+   =============================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+
+  font-family: var(--font-main);
+  line-height: 1.6;
+
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===============================
+   LAYOUT
+   =============================== */
+
+.container {
+  max-width: var(--max-width-mobile);
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 5rem;
+}
+
+/* Desktop expansion */
+@media (min-width: 1024px) {
+  .container {
+    max-width: var(--max-width-desktop);
+    padding-top: 4.5rem;
+  }
+}
+
+/* ===============================
+   TYPOGRAPHY
+   =============================== */
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.6em;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+h1,
+h2 {
+  color: var(--accent-primary);
+  text-shadow: 0 0 10px rgba(107, 218, 225, 0.25);
+}
+
+p {
+  margin: 0.4rem 0 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* ===============================
+   LINKS (NO UNDERLINE)
+   =============================== */
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  filter: brightness(1.15);
+}
+
+/* ===============================
+   SITE HEADER
+   =============================== */
+
+.site-header {
+  margin-bottom: 4rem;
+}
+
+.site-title {
+  font-size: 1.8rem;
+}
+
+/* ===============================
+   COURSE CARDS
+   =============================== */
+
+.courses-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 4.5rem;
+}
+
+@media (min-width: 768px) {
+  .courses-grid {
+    grid-template-columns: 1;
+  }
+}
+
+.card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 28px rgba(100, 226, 50, 0.25);
+}
+
+.card-title {
+  font-size: 1.35rem;
+  color: var(--accent-primary);
+}
+
+/* ===============================
+   FORM TRIGGER
+   =============================== */
+.form-instruction{
+  font-weight: 500;
+  padding: 15px;
+  color: var(--surface-color);
+}
+.form-trigger {
+  display: inline-block;
+
+  background: linear-gradient(
+    90deg,
+    var(--accent-primary),
+    #00a2ff
+  );
+
+  color: #0b021d;
+  padding: 0.85rem 1.6rem;
+
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+
+  border: none;
+  cursor: pointer;
+
+  transition: box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.form-trigger:hover {
+  box-shadow: 0 0 18px var(--accent-primary);
+  filter: brightness(1.1);
+}
+
+/* ===============================
+   FORM CONTAINER (CRITICAL FIX)
+   =============================== */
+
+.form-container {
+  margin-top: 2.5rem;
+
+  background: #ffffff;
+  border-radius: 14px;
+
+  /* IMPORTANT:
+     No scroll aquí */
+  overflow: hidden;
+
+  border: 3px solid var(--accent-primary);
+}
+
+/* IFRAME controls the height, NOT the container */
+.form-container iframe {
+  width: 100%;
+  min-height: 100svh; /* modern mobile */
+  min-height: 100vh;  /* fallback */
+
+  border: 0;
+  display: block;
+}
+
+/* Small laptops / tablets (11–13") */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .form-container iframe {
+    min-height: 120vh;
+  }
+}
+
+/* ===============================
+   ROADMAP
+   =============================== */
+
+.roadmap-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  padding: 0.35rem 0.9rem;
+
+  border-radius: 6px;
+  font-weight: 800;
+  border: 1px solid currentColor;
+}
+
+.status-locked {
+  color: var(--text-secondary);
+  background: rgba(157, 141, 189, 0.1);
+}
+
+.status-available {
+  color: var(--accent-secondary);
+  background: rgba(100, 226, 50, 0.12);
+  text-shadow: 0 0 6px var(--accent-secondary);
+}
+
+/* ===============================
+   TOOLBOX
+   =============================== */
+
+.toolbox-section {
+  margin-top: 5rem;
+
+  background: rgba(45, 27, 84, 0.45);
+  border: 1px solid var(--border-color);
+
+  padding: 2.5rem;
+  border-radius: 18px;
+}
+
+.toolbox-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toolbox-list li {
+  margin-bottom: 0.6rem;
+}
+
+.toolbox-list a {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
+
+/* ===============================
+   FOOTER
+   =============================== */
+
+.site-footer {
+  margin-top: 6rem;
+  padding-top: 2rem;
+
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Mobile breathing room */
+@media (max-width: 767px) {
+  .container {
+    padding-bottom: 6rem;
+  }
+}
