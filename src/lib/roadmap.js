@@ -1,6 +1,7 @@
 // CONFIGURACIÓN MAESTRA DE LOS CURSOS
+// ACTUALIZADO: Claves sin guiones para coincidir con Supabase ('aleman1', 'aleman2')
 export const COURSE_CONFIG = {
-  'aleman-1': {
+  'aleman1': {
     title: 'Alemán 1: Fundamentos',
     path: 'aleman1',
     weeks: [
@@ -16,7 +17,7 @@ export const COURSE_CONFIG = {
       { id: 'a1-w10', title: 'Woche 10: Abschluss', active: false }
     ]
   },
-  'aleman-2': {
+  'aleman2': {
     title: 'Alemán 2: Intermedio',
     path: 'aleman2',
     weeks: [
@@ -37,13 +38,20 @@ export const COURSE_CONFIG = {
 // FUNCIÓN DE RENDERIZADO (Reutilizable)
 export function renderRoadmap(containerId, level) {
   const container = document.getElementById(containerId);
-  const config = COURSE_CONFIG[level];
   
-  // Seguridad: Si el nivel no existe, no renderizamos nada o mostramos error
+  // Limpieza de datos: si llega 'aleman-1' (viejo) lo convertimos a 'aleman1' (nuevo)
+  // Esto asegura compatibilidad total.
+  const cleanLevel = level ? level.replace('-', '') : '';
+  const config = COURSE_CONFIG[cleanLevel];
+  
+  // SOLUCIÓN PEDIDA: Si falla, ocultamos todo silenciosamente.
   if (!config) {
-    container.innerHTML = '<p style="color:red">Error: Nivel no asignado. Contacta al profesor.</p>';
+    container.style.display = 'none'; // Desaparece del HTML
     return;
   }
+
+  // Si llegamos aquí, aseguramos que el contenedor sea visible
+  container.style.display = 'block';
 
   let html = `<div class="card" style="border-color: var(--accent-primary);">
                 <h2 style="font-size:1.2rem; margin-bottom:1.5rem;">🚀 Tu Ruta: ${config.title}</h2>
@@ -53,7 +61,6 @@ export function renderRoadmap(containerId, level) {
     const isLocked = !week.active;
     const icon = isLocked ? '🔒' : '🟢';
     
-    // Generamos el link correcto: /aleman1/week1 o /aleman2/week1
     // Extraemos el número de semana del ID (ej: a1-w1 -> 1)
     const weekNum = week.id.split('-w')[1];
     const link = `/${config.path}/week${weekNum}`;
