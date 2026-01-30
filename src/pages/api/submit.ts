@@ -16,6 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
       ],
       max_tokens: 450,
       temperature: 0.5,
+      presence_penalty: 0.6, // Reduce la repetición de frases y saludos
     });
     
     return new Response(JSON.stringify({ 
