@@ -1,27 +1,36 @@
 ---
+// src/components/GuidedActivity.astro
 import { getBackLink } from '@lib/navigation';
-
 const { lesson } = Astro.props;
 const backLink = getBackLink(lesson);
-
 ---
 
 <div class="container">
-<div class="navbar" style="padding:0; border:none; margin-bottom:1rem;">
-  <a
-    href={backLink.href}
-    style="color:var(--accent-primary); font-weight:bold; display:flex; align-items:center; gap:5px;"
-  >
-    <span>←</span> {backLink.label}
-  </a>
-</div>
+  <div class="navbar" style="padding:0; border:none; margin-bottom:1rem;">
+    <a
+      href={backLink.href}
+      style="color:var(--accent-primary); font-weight:bold; display:flex; align-items:center; gap:5px;"
+    >
+      <span>←</span> {backLink.label}
+    </a>
+  </div>
 
   <h1>{lesson.title}</h1>
+
+<!-- ✅ Mensaje estático sobre naturaleza formativa (SIEMPRE visible) -->
+<div class="card activity-notice">
+<h3>ℹ️ Actividad formativa</h3>
+<p>
+Tu entrega es lo que cuenta. El feedback te ayuda a mejorar y la entrega se traduce después en la calificación institucional.
+</p>
+
+
+</div>
+
 
   <div class="card">
     <h3>📝 Instrucciones de la Actividad</h3>
     <p>{lesson.instructions.intro}</p>
-
     <ul>
       {lesson.instructions.grammarReminder.map(item => (
         <li>{item}</li>
@@ -42,8 +51,23 @@ const backLink = getBackLink(lesson);
   )}
 
   <form id="activity-form" class="card">
-    <h2>{lesson.activity.title}</h2>
+    <!-- ✅ Campo obligatorio para nombre completo (validado en JS) -->
+    <div style="margin-bottom: 1.5rem;">
+      <label for="student-fullname">Nombre completo *</label>
+      <input 
+        type="text" 
+        id="student-fullname" 
+        required 
+        minlength="3"
+        placeholder="Ej: Yasser Gandhi Hernández Esquivel"
+        style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px;"
+      />
+      <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem;">
+        Este nombre aparecerá en tus registros académicos
+      </p>
+    </div>
 
+    <h2>{lesson.activity.title}</h2>
     {lesson.activity.parts.map(part => (
       <div style="margin-bottom:1.5rem;">
         <label for={part.id}>{part.label}</label>
@@ -52,6 +76,7 @@ const backLink = getBackLink(lesson);
           id={part.id}
           rows={part.rows}
           placeholder={part.placeholder}
+          required
         />
       </div>
     ))}
@@ -60,73 +85,108 @@ const backLink = getBackLink(lesson);
       Enviar respuestas
     </button>
   </form>
+
+  <!-- ✅ Contenedor de feedback (inicialmente oculto) -->
+  <div
+    id="feedback-container"
+    class="card"
+    style="display:none; margin-top:2rem; border-left:4px solid var(--accent-secondary);"
+  >
+    <h3 style="margin-top:0;">📘 Feedback del Profesor</h3>
+    <div id="feedback-content"></div>
+    <!-- ✅ Mensaje de entrega aparece SOLO tras feedback exitoso -->
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+      <p style="font-weight: bold; color: var(--accent-primary); display: flex; align-items: center; gap: 0.5rem;">
+        ✅ <span>Actividad entregada</span>
+      </p>
+      <p style="font-size: 0.85rem; opacity: 0.8;">
+        Tu respuesta ha sido registrada correctamente en el sistema.
+      </p>
+    </div>
+  </div>
 </div>
 
 <script>
-  import { supabase } from '../lib/supabase';
+const form = document.getElementById('activity-form');
+const btn = document.getElementById('submit-btn');
+const feedbackContainer = document.getElementById('feedback-container');
+const feedbackContent = document.getElementById('feedback-content');
 
-  const form = document.getElementById('activity-form');
-  const btn = document.getElementById('submit-btn');
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  // ✅ Validación y sanitización del nombre
+  const studentNameInput = document.getElementById('student-fullname');
+  const studentName = studentNameInput.value.trim();
+  
+  if (studentName.length < 3) {
+    alert('⚠️ Por favor ingresa tu nombre completo (mínimo 3 caracteres)');
+    studentNameInput.focus();
+    return;
+  }
+  
+  // Validación de partes de la actividad
+  const part1 = document.getElementById('part1')?.value.trim() || '';
+  const part2 = document.getElementById('part2')?.value.trim() || '';
+  const part3 = document.getElementById('part3')?.value.trim() || '';
+  
+  if (!part1 && !part2 && !part3) {
+    alert('⚠️ Escribe al menos una respuesta antes de enviar.');
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.innerText = 'Enviando...';
+  
+  // Construir texto completo con estructura clara
+  const text = `
+[PARTE 1]
+${part1}
 
-  const loadingMessages = [
-    "IA Analizando...",
-    "Consultando al Tutor...",
-    "Corrigiendo gramática...",
-    "Preparando tu feedback..."
-  ];
+[PARTE 2]
+${part2}
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    btn.disabled = true;
-
-    let msgIndex = 0;
-    btn.innerText = loadingMessages[0];
-
-    const interval = setInterval(() => {
-      msgIndex = (msgIndex + 1) % loadingMessages.length;
-      btn.innerText = loadingMessages[msgIndex];
-    }, 2500);
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const text = `
-[PRESENTACIÓN]
-${document.getElementById('part1').value}
-
-[PERSONAJE]
-${document.getElementById('part2').value}
-
-[REFLEXIÓN]
-${document.getElementById('part3').value}
-`;
-
-    try {
-      const response = await fetch('/api/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-
-      const result = await response.json();
-      clearInterval(interval);
-
-      if (!result.success) throw new Error(result.error);
-
-      await supabase.from('submissions').upsert({
-        user_id: user.id,
-        user_email: user.email,
-        session_id: lesson.id,
-        content_text: text,
-        ai_feedback: result.feedback
-      });
-
-      window.location.href = `/dashboard?new_feedback=${encodeURIComponent(result.feedback)}`;
-
-    } catch (err) {
-      clearInterval(interval);
-      alert("Error: " + err.message);
-      btn.disabled = false;
-      btn.innerText = "Reintentar";
+[PARTE 3]
+${part3}
+`.trim();
+  
+  // ✅ Payload con datos validados y sanitizados
+  const payload = {
+    text,
+    studentName, // Nombre limpio y validado
+    kurs: 'A1',  // TODO: Obtener dinámicamente de lesson.kurs
+    woche: 1     // TODO: Obtener dinámicamente de lesson.woche
+  };
+  
+  try {
+    const response = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || 'Error desconocido');
     }
-  });
+    
+    // ✅ Mostrar feedback + mensaje de entrega
+    feedbackContent.innerHTML = result.feedback;
+    feedbackContainer.style.display = 'block';
+    
+    // Scroll suave al feedback
+    feedbackContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Reset formulario (opcional)
+    // form.reset();
+    
+  } catch (err) {
+    console.error('Error:', err);
+    alert(`❌ Error: ${err.message || 'No se pudo enviar la actividad'}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Enviar respuestas';
+  }
+});
 </script>

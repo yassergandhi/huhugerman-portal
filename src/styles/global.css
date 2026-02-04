@@ -9,6 +9,9 @@
   --text-secondary: #aed7f5;
   --accent-primary: #2ef99e;   /* Neon Green */
   --accent-secondary: #64e232; /* Lime Green */
+  --accent-heading: #ff5fd2;      /* Amarillo suave */
+  --accent-heading-soft: rgba(255, 209, 102, 0.12);
+  --accent-notice: #ffd166;
   --border-color: #2d1b54;
   --input-bg: #080116;         
   --font-main: 'Inter', system-ui, -apple-system, sans-serif;
@@ -53,14 +56,17 @@ body {
 }
 
 /* --- 3. TYPOGRAPHY --- */
-h1, h2, h3 {
+h1, h2 {
   margin: 0 0 0.6em;
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: var(--accent-primary);
-  text-shadow: 0 0 10px rgba(46, 249, 158, 0.25);
+  color: var(--accent-heading);
+  text-shadow: 0 0 12px rgba(255, 95, 210, 0.35);
 }
 
+h3 {
+  color: var(--accent-primary);
+}
 p {
   margin: 0.4rem 0 1.2rem;
   color: var(--text-secondary);
@@ -107,6 +113,31 @@ a:hover {
   border-color: var(--accent-primary);
   transform: translateY(-2px);
 }
+
+.activity-notice {
+  background-color: rgba(255, 209, 102, 0.08);
+  border: 1.5px dashed rgba(255, 209, 102, 0.5);
+  color: var(--text-secondary);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(46, 249, 158, 0.15) inset;
+}
+
+.activity-notice h3 {
+  color: var(--accent-notice);
+  font-size: 0.85rem;
+  margin: 0 0 0.15rem 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.activity-notice p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+
 
 /* --- 5. BUTTONS --- */
 .btn {
