@@ -1,0 +1,38 @@
+// src/lib/ai-service.ts
+import OpenAI from 'openai';
+import { buildPedagogicalPrompt } from './ai/prompt-builder';
+// Asegúrate de importar el tipo de tu schema si es necesario
+
+const openai = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: import.meta.env.DEEPSEEK_API_KEY,
+  dangerouslyAllowBrowser: false
+});
+
+export const generatePedagogicalFeedback = async (
+  studentText: string, 
+  level: string, 
+  context: any // Puedes tipar esto como WochenKontext si lo deseas
+) => {
+  try {
+    // Usamos el builder optimizado para HTML y brevedad
+    // Asumimos un nombre genérico si no se pasa, o pásalo como argumento extra si lo tienes
+    const prompt = buildPedagogicalPrompt(studentText, context, "Estudiante");
+    
+    const response = await openai.chat.completions.create({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: 'Eres un sistema automatizado de corrección de alemán. Responde SOLO en HTML.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 400 // Limitamos la longitud para forzar brevedad y rapidez
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error("AI Service Error:", error);
+    // Fallback en caso de error de la IA
+    return `<div class="feedback-response"><p>Tu respuesta ha sido guardada correctamente, pero el sistema de IA no pudo generar feedback en este momento.</p></div>`;
+  }
+};

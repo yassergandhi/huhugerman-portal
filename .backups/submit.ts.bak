@@ -1,0 +1,111 @@
+<!-- src/pages/api/submit.ts -->
+import type { APIRoute } from "astro";
+import { SubmissionInputSchema } from "@/lib/domain/schemas/submission.schema"; // Ruta corregida
+import { saveSubmission } from "@/lib/services/persistence/submissions";
+import { supabase } from "@/lib/supabase";
+import { generatePedagogicalFeedback } from "@/lib/ai-service";
+
+// Importa el schema de contexto semanal si lo necesitas para la IA,
+// o usa uno mockeado/cargado dinámicamente según tu arquitectura.
+// Por ahora, asumiremos que pasas el texto plano o cargas el contexto dentro de generatePedagogicalFeedback.
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+try {
+const body = await request.json().catch(() => null);
+
+if (!body) {
+  return new Response(JSON.stringify({ error: "JSON inválido o cuerpo vacío" }), { status: 400 });
+}
+
+// 1. VALIDACIÓN DE DATOS (Zod)
+const validation = SubmissionInputSchema.safeParse(body);
+
+if (!validation.success) {
+  return new Response(JSON.stringify({
+    error: "Datos inválidos",
+    details: validation.error.flatten().fieldErrors
+  }), { status: 400 });
+}
+
+const { data } = validation;
+
+// 2. AUTENTICACIÓN (Prioridad: Token > Body)
+let userId = data.userId;
+
+if (!userId) {
+  // Intentar sacar el token del Header 'Authorization' o Cookies
+  const authHeader = request.headers.get('Authorization');
+  const token = authHeader?.split(' ')[1] || cookies.get('sb-access-token')?.value;
+
+  if (token) {
+    const { data: userDat } = await supabase.auth.getUser(token);
+    if (userDat.user) userId = userDat.user.id;
+  }
+}
+
+if (!userId) {
+  return new Response(JSON.stringify({
+    error: "No autorizado. Debes iniciar sesión."
+  }), { status: 401 });
+}
+
+// 3. GENERAR FEEDBACK IA (Opcional: puedes hacerlo background)
+// Nota: Aquí deberías cargar el 'weekContext' real de tu archivo de semanas.
+// Para que no falle ahora, pasaremos un contexto mínimo.
+let aiFeedback = "Feedback pendiente";
+try {
+    // Carga dinámica del contexto de la semana (opcional)
+    // const contextModule = await import(`../../lib/domain/weeks/${data.level}/${data.week}.ts`);
+    // const weekContext = contextModule.default;
+
+    // Simulamos contexto para que funcione ya
+    const mockContext = {
+        kurs: data.level,
+        woche: data.week.replace(/\D/g, ''),
+        gelernt: {
+            grammatik: { verbzweistellung: true, wFragen: [], kasus: { nominativ: { gelernt: true } } },
+            wortschatz: { themen: ["Begrüßung"] },
+            soziopragmatik: ["du/Sie"]
+        },
+        nicht_gelernt: { grammatik: ["Perfekt"], soziopragmatik: [] },
+        korrektur: {
+            darf_korrigieren: ["Verbformen"],
+            darf_nicht_korrigieren: ["Nebensätze"],
+            max_fehler: 3,
+            ueberkorrektur_vermeiden: true
+        }
+    };
+
+    // Llamamos al servicio de IA
+    aiFeedback = await generatePedagogicalFeedback(data.content, data.level, mockContext);
+} catch (aiError) {
+    console.error("⚠️ Error generando feedback IA:", aiError);
+    // No detenemos el guardado si falla la IA
+}
+
+// 4. GUARDAR EN BASE DE DATOS
+console.log(`⏳ Guardando entrega para: ${userId}`);
+const savedRecord = await saveSubmission({
+  ...data,
+  userId, // ID confirmado
+  aiFeedback
+});
+
+// 5. RESPUESTA EXITOSA
+return new Response(JSON.stringify({
+  message: "Envío recibido correctamente",
+  submission_id: savedRecord.id,
+  aiFeedback: aiFeedback // Devolvemos el feedback para mostrarlo en el front
+}), {
+  status: 200,
+  headers: { "Content-Type": "application/json" }
+});
+
+} catch (error: any) {
+console.error("🔥 [API Error]", error.message);
+return new Response(JSON.stringify({
+  error: "Error interno en el servidor",
+  real_error: error.message
+}), { status: 500 });
+}
+};

@@ -1,0 +1,78 @@
+<!-- src/lib/services/persistence/submissions.ts -->
+import { supabaseAdmin } from '../../supabase'; // Ruta corregida
+
+export interface SubmissionData {
+userId?: string;
+email?: string;
+firstName: string;
+lastName: string;
+level: string;
+week: string;
+content: string;
+aiFeedback?: string;
+}
+
+export const saveSubmission = async (data: SubmissionData) => {
+// 1. LÓGICA DE NORMALIZACIÓN
+const shortLevel = data.level.toLowerCase().includes('aleman1') ? 'a1' : 'a2';
+const weekNumberRaw = data.week.replace(/[^0-9]/g, '');
+const weekNumberPadded = weekNumberRaw.padStart(2, '0');
+
+const formattedWeekId = `w${weekNumberPadded}`;
+const sessionId = `${shortLevel}-${formattedWeekId}`;
+
+console.log(`[DB] Procesando envío para sesión: ${sessionId}`);
+
+try {
+  // 2. ACTUALIZAR PERFIL (Aquí es donde viven los nombres)
+  if (data.userId) {
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        id: data.userId,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email
+      });
+
+    if (profileError) {
+      console.error('[DB Profile Error]', profileError);
+    }
+  }
+
+  // 3. PREPARAR PAYLOAD PARA SUBMISSIONS (Solo columnas válidas)
+  const payload = {
+    user_id: data.userId,
+    session_id: sessionId,
+    content_text: data.content,
+    ai_feedback: data.aiFeedback || "Pendiente",
+    submission_type: 'written',
+    created_at: new Date().toISOString()
+  };
+
+  // 4. UPSERT EN SUBMISSIONS
+  // Nota: Para que 'onConflict' funcione con estas dos columnas,
+  // debe existir un índice único (unique constraint) en la DB para user_id y session_id.
+  const { data: result, error } = await supabaseAdmin
+    .from('submissions')
+    .upsert(payload, {
+      onConflict: 'user_id, session_id'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[DB Error Detail]', error);
+    if (error.code === '23503') {
+      throw new Error(`La sesión '${sessionId}' no existe en la tabla 'sessions'.`);
+    }
+    throw new Error(`Error Supabase [${error.code}]: ${error.message}`);
+  }
+
+  return result;
+
+} catch (err: any) {
+  console.error('[Persistence Exception]', err.message);
+  throw err;
+}
+};

@@ -1,0 +1,3670 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  favicon.ico
+  favicon.svg
+src/
+  components/
+    CourseList.astro
+    GuidedActivity.astro
+    LessonUI.astro
+    Navbar.astro
+  layouts/
+    Layout.astro
+  lib/
+    ai/
+      providers/
+        deepseek.ts
+      prompt-builder.ts
+    courses/
+      aleman1/
+        sessions/
+          w01.js
+          w02.js
+          w03.js
+          w04.js
+          w05.js
+          w06.js
+          w07.js
+          w08.js
+          w09.js
+          w10.js
+      aleman2/
+        sessions/
+          w01.js
+          w02.js
+          w03.js
+          w04.js
+          w05.js
+          w06.js
+          w07.js
+          w08.js
+          w09.js
+          w10.js
+    domain/
+      schemas/
+        submission.schema.ts
+        week-context.schema.ts
+      weeks/
+        a1-woche-01.ts
+        a1-woche-02.ts
+        a2-woche-02.ts
+        week-registry.ts
+      index.ts
+    services/
+      persistence/
+        submissions.ts
+    navigation.ts
+    roadmap.ts
+    supabase.js
+  pages/
+    aleman1/
+      index.astro
+    aleman2/
+      index.astro
+    api/
+      submit.ts
+    dashboard/
+      index.astro
+    feedback/
+      [id].astro
+    learn/
+      [level]/
+        [week].astro
+    index.astro
+  styles/
+    global.css
+.gitignore
+.node-version
+astro.config.mjs
+fix-imports.sh
+package.json
+quick-check.sh
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="fix-imports.sh">
+#!/bin/bash
+# Script de corrección automática para huhugerman-portal
+# Ejecutar en la raíz del proyecto
+
+set -e  # Salir si hay errores
+
+echo "🔧 Iniciando correcciones automáticas..."
+echo ""
+
+# Colores para output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# 1. Verificar que estamos en el directorio correcto
+if [ ! -f "package.json" ]; then
+    echo -e "${RED}❌ Error: No se encuentra package.json${NC}"
+    echo "   Ejecuta este script desde la raíz del proyecto"
+    exit 1
+fi
+
+echo -e "${GREEN}✓${NC} Directorio del proyecto verificado"
+
+# 2. Backup de archivos originales
+echo ""
+echo "📦 Creando backups..."
+mkdir -p .backups
+cp src/lib/ai-service.ts .backups/ai-service.ts.bak 2>/dev/null || true
+cp src/lib/services/persistence/submissions.ts .backups/submissions.ts.bak 2>/dev/null || true
+cp src/pages/api/submit.ts .backups/submit.ts.bak 2>/dev/null || true
+echo -e "${GREEN}✓${NC} Backups creados en .backups/"
+
+# 3. Corregir ai-service.ts
+echo ""
+echo "🔄 Corrigiendo src/lib/ai-service.ts..."
+if [ -f "src/lib/ai-service.ts" ]; then
+    sed -i "s|from './services/ai/prompt-builder'|from './ai/prompt-builder'|g" src/lib/ai-service.ts
+    echo -e "${GREEN}✓${NC} Importación de prompt-builder corregida"
+else
+    echo -e "${YELLOW}⚠${NC}  Archivo no encontrado, saltando..."
+fi
+
+# 4. Corregir submissions.ts
+echo ""
+echo "🔄 Corrigiendo src/lib/services/persistence/submissions.ts..."
+if [ -f "src/lib/services/persistence/submissions.ts" ]; then
+    sed -i "s|from '../../../lib/supabase'|from '../../supabase'|g" src/lib/services/persistence/submissions.ts
+    echo -e "${GREEN}✓${NC} Importación de supabase corregida"
+else
+    echo -e "${YELLOW}⚠${NC}  Archivo no encontrado, saltando..."
+fi
+
+# 5. Corregir submit.ts
+echo ""
+echo "🔄 Corrigiendo src/pages/api/submit.ts..."
+if [ -f "src/pages/api/submit.ts" ]; then
+    # Corregir imports
+    sed -i 's|from "../../lib/domain/schemas/submission.schema"|from "@/lib/domain/schemas/submission.schema"|g' src/pages/api/submit.ts
+    sed -i 's|from "../../lib/services/persistence/submissions"|from "@/lib/services/persistence/submissions"|g' src/pages/api/submit.ts
+    sed -i 's|from "../../lib/supabase"|from "@/lib/supabase"|g' src/pages/api/submit.ts
+    sed -i 's|from "../../lib/ai-service"|from "@/lib/ai-service"|g' src/pages/api/submit.ts
+    
+    # Corregir respuesta del API (id -> submission_id)
+    sed -i 's|id: savedRecord.id,|submission_id: savedRecord.id,|g' src/pages/api/submit.ts
+    
+    echo -e "${GREEN}✓${NC} Importaciones y respuesta API corregidas"
+else
+    echo -e "${YELLOW}⚠${NC}  Archivo no encontrado, saltando..."
+fi
+
+# 6. Verificar estructura de directorios
+echo ""
+echo "📁 Verificando estructura de directorios..."
+REQUIRED_DIRS=(
+    "src/lib/ai"
+    "src/lib/domain/schemas"
+    "src/lib/services/persistence"
+    "src/pages/api"
+)
+
+for dir in "${REQUIRED_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+        echo -e "${GREEN}✓${NC} $dir existe"
+    else
+        echo -e "${RED}✗${NC} $dir NO existe"
+    fi
+done
+
+# 7. Verificar archivos clave
+echo ""
+echo "📄 Verificando archivos clave..."
+REQUIRED_FILES=(
+    "src/lib/ai/prompt-builder.ts"
+    "src/lib/supabase.ts"
+    "src/lib/ai-service.ts"
+    "src/pages/api/submit.ts"
+)
+
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        echo -e "${GREEN}✓${NC} $file existe"
+    else
+        echo -e "${RED}✗${NC} $file NO existe"
+    fi
+done
+
+# 8. Verificar .env
+echo ""
+echo "🔑 Verificando variables de entorno..."
+if [ -f ".env" ]; then
+    echo -e "${GREEN}✓${NC} Archivo .env existe"
+    
+    # Verificar que tenga las variables necesarias
+    REQUIRED_VARS=("PUBLIC_SUPABASE_URL" "PUBLIC_SUPABASE_KEY" "SUPABASE_SERVICE_ROLE_KEY" "DEEPSEEK_API_KEY")
+    for var in "${REQUIRED_VARS[@]}"; do
+        if grep -q "^${var}=" .env; then
+            echo -e "${GREEN}✓${NC} $var configurada"
+        else
+            echo -e "${YELLOW}⚠${NC}  $var NO encontrada en .env"
+        fi
+    done
+else
+    echo -e "${YELLOW}⚠${NC}  Archivo .env no existe"
+    echo "   Creando plantilla de .env..."
+    cat > .env << 'EOF'
+# Supabase Configuration
+PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+PUBLIC_SUPABASE_KEY=tu-anon-key-aqui
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key-aqui
+
+# DeepSeek AI
+DEEPSEEK_API_KEY=tu-deepseek-api-key-aqui
+EOF
+    echo -e "${GREEN}✓${NC} Plantilla .env creada - EDÍTALA con tus credenciales"
+fi
+
+# 9. Verificar TypeScript
+echo ""
+echo "🔍 Verificando TypeScript..."
+if command -v npx &> /dev/null; then
+    if npx tsc --noEmit --skipLibCheck 2>/dev/null; then
+        echo -e "${GREEN}✓${NC} No hay errores de TypeScript"
+    else
+        echo -e "${YELLOW}⚠${NC}  Hay errores de TypeScript (revisar manualmente)"
+    fi
+else
+    echo -e "${YELLOW}⚠${NC}  npx no disponible, saltando verificación TS"
+fi
+
+# 10. Resumen final
+echo ""
+echo "=========================================="
+echo -e "${GREEN}✅ CORRECCIONES COMPLETADAS${NC}"
+echo "=========================================="
+echo ""
+echo "📋 PRÓXIMOS PASOS:"
+echo ""
+echo "1. Edita el archivo .env con tus credenciales reales"
+echo "2. Ejecuta: npm install"
+echo "3. Ejecuta: npm run dev"
+echo "4. Prueba el endpoint con curl:"
+echo '   curl -X POST http://localhost:4321/api/submit \'
+echo '     -H "Content-Type: application/json" \'
+echo '     -d '"'"'{"firstName":"Test","lastName":"User","level":"aleman1","week":"w01","content":"Hallo","userId":"550e8400-e29b-41d4-a716-446655440000"}'"'"
+echo ""
+echo "5. Si todo funciona, ejecuta: npm run build"
+echo "6. Deploy con: vercel --prod"
+echo ""
+echo -e "${YELLOW}💡 TIP:${NC} Los backups están en .backups/ por si necesitas revertir"
+echo ""
+</file>
+
+<file path="quick-check.sh">
+#!/bin/bash
+# Script de verificación rápida y testing
+# Para: huhugerman-portal
+
+# Colores
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo ""
+echo "🚀 VERIFICACIÓN RÁPIDA - huhugerman-portal"
+echo "==========================================="
+echo ""
+
+# Función para verificar comando
+check_command() {
+    if command -v $1 &> /dev/null; then
+        echo -e "${GREEN}✓${NC} $1 instalado"
+        return 0
+    else
+        echo -e "${RED}✗${NC} $1 NO instalado"
+        return 1
+    fi
+}
+
+# 1. Verificar herramientas necesarias
+echo "📦 Verificando herramientas..."
+check_command node
+check_command npm
+check_command curl
+echo ""
+
+# 2. Verificar archivos del proyecto
+echo "📁 Verificando estructura del proyecto..."
+FILES_TO_CHECK=(
+    "package.json"
+    "tsconfig.json"
+    "astro.config.mjs"
+    ".env"
+    "src/lib/ai-service.ts"
+    "src/lib/ai/prompt-builder.ts"
+    "src/lib/supabase.ts"
+    "src/pages/api/submit.ts"
+    "src/lib/services/persistence/submissions.ts"
+)
+
+for file in "${FILES_TO_CHECK[@]}"; do
+    if [ -f "$file" ]; then
+        echo -e "${GREEN}✓${NC} $file"
+    else
+        echo -e "${RED}✗${NC} $file (FALTA)"
+    fi
+done
+echo ""
+
+# 3. Verificar variables de entorno
+echo "🔑 Verificando variables de entorno..."
+if [ -f ".env" ]; then
+    VARS=("PUBLIC_SUPABASE_URL" "PUBLIC_SUPABASE_KEY" "SUPABASE_SERVICE_ROLE_KEY" "DEEPSEEK_API_KEY")
+    for var in "${VARS[@]}"; do
+        if grep -q "^${var}=" .env && ! grep -q "^${var}=tu-" .env && ! grep -q "^${var}=$" .env; then
+            echo -e "${GREEN}✓${NC} $var configurada"
+        else
+            echo -e "${YELLOW}⚠${NC}  $var no configurada o con valor placeholder"
+        fi
+    done
+else
+    echo -e "${RED}✗${NC} Archivo .env no existe"
+fi
+echo ""
+
+# 4. Verificar importaciones en archivos clave
+echo "🔍 Verificando importaciones..."
+
+# ai-service.ts
+if grep -q "from './ai/prompt-builder'" src/lib/ai-service.ts 2>/dev/null; then
+    echo -e "${GREEN}✓${NC} ai-service.ts - importación correcta"
+else
+    echo -e "${RED}✗${NC} ai-service.ts - importación INCORRECTA"
+fi
+
+# submissions.ts
+if grep -q "from '../../supabase'" src/lib/services/persistence/submissions.ts 2>/dev/null; then
+    echo -e "${GREEN}✓${NC} submissions.ts - importación correcta"
+else
+    echo -e "${RED}✗${NC} submissions.ts - importación INCORRECTA"
+fi
+
+# submit.ts - verificar múltiples imports
+if grep -q 'from "@/lib' src/pages/api/submit.ts 2>/dev/null; then
+    echo -e "${GREEN}✓${NC} submit.ts - usando alias @/"
+else
+    echo -e "${YELLOW}⚠${NC}  submit.ts - podría necesitar alias @/"
+fi
+
+# Verificar respuesta API
+if grep -q "submission_id: savedRecord.id" src/pages/api/submit.ts 2>/dev/null; then
+    echo -e "${GREEN}✓${NC} submit.ts - respuesta con submission_id correcta"
+else
+    echo -e "${RED}✗${NC} submit.ts - respuesta podría tener 'id' en lugar de 'submission_id'"
+fi
+echo ""
+
+# 5. Verificar dependencias instaladas
+echo "📚 Verificando dependencias npm..."
+if [ -d "node_modules" ]; then
+    echo -e "${GREEN}✓${NC} node_modules existe"
+    
+    DEPS=("astro" "zod" "openai" "@supabase/supabase-js")
+    for dep in "${DEPS[@]}"; do
+        if [ -d "node_modules/$dep" ]; then
+            echo -e "${GREEN}✓${NC} $dep instalado"
+        else
+            echo -e "${RED}✗${NC} $dep NO instalado"
+        fi
+    done
+else
+    echo -e "${RED}✗${NC} node_modules NO existe - ejecuta: npm install"
+fi
+echo ""
+
+# 6. Test TypeScript (si está disponible)
+echo "🔧 Verificando TypeScript..."
+if command -v npx &> /dev/null; then
+    if npx tsc --noEmit --skipLibCheck 2>&1 | grep -q "error TS"; then
+        echo -e "${RED}✗${NC} Hay errores de TypeScript"
+        echo "   Ejecuta: npx tsc --noEmit para ver detalles"
+    else
+        echo -e "${GREEN}✓${NC} Sin errores de TypeScript"
+    fi
+else
+    echo -e "${YELLOW}⚠${NC}  npx no disponible"
+fi
+echo ""
+
+# 7. Sugerencias de comandos
+echo "=========================================="
+echo -e "${BLUE}📋 PRÓXIMOS PASOS SUGERIDOS${NC}"
+echo "=========================================="
+echo ""
+
+# Determinar qué hacer basado en el estado
+NEEDS_INSTALL=false
+NEEDS_ENV=false
+NEEDS_FIX=false
+
+if [ ! -d "node_modules" ]; then
+    NEEDS_INSTALL=true
+fi
+
+if [ ! -f ".env" ] || grep -q "tu-proyecto.supabase.co" .env 2>/dev/null; then
+    NEEDS_ENV=true
+fi
+
+if ! grep -q "from './ai/prompt-builder'" src/lib/ai-service.ts 2>/dev/null; then
+    NEEDS_FIX=true
+fi
+
+if [ "$NEEDS_FIX" = true ]; then
+    echo -e "${YELLOW}1.${NC} Corregir importaciones:"
+    echo "   bash fix-imports.sh"
+    echo ""
+fi
+
+if [ "$NEEDS_ENV" = true ]; then
+    echo -e "${YELLOW}2.${NC} Configurar variables de entorno:"
+    echo "   Edita .env con tus credenciales reales"
+    echo ""
+fi
+
+if [ "$NEEDS_INSTALL" = true ]; then
+    echo -e "${YELLOW}3.${NC} Instalar dependencias:"
+    echo "   npm install"
+    echo ""
+fi
+
+echo -e "${BLUE}4.${NC} Iniciar servidor de desarrollo:"
+echo "   npm run dev"
+echo ""
+
+echo -e "${BLUE}5.${NC} Ejecutar tests:"
+echo "   npx vitest run"
+echo ""
+
+echo -e "${BLUE}6.${NC} Test manual del API:"
+echo '   curl -X POST http://localhost:4321/api/submit \'
+echo '     -H "Content-Type: application/json" \'
+echo '     -d '"'"'{"firstName":"Test","lastName":"User","level":"aleman1","week":"w01","content":"Hallo","userId":"550e8400-e29b-41d4-a716-446655440000"}'"'"
+echo ""
+
+echo -e "${BLUE}7.${NC} Build para producción:"
+echo "   npm run build"
+echo ""
+
+echo -e "${BLUE}8.${NC} Deploy a Vercel:"
+echo "   vercel --prod"
+echo ""
+
+# Resumen final
+echo "=========================================="
+echo -e "${GREEN}✅ VERIFICACIÓN COMPLETADA${NC}"
+echo "=========================================="
+echo ""
+
+# Contador de problemas
+PROBLEMS=0
+if [ "$NEEDS_FIX" = true ]; then ((PROBLEMS++)); fi
+if [ "$NEEDS_ENV" = true ]; then ((PROBLEMS++)); fi
+if [ "$NEEDS_INSTALL" = true ]; then ((PROBLEMS++)); fi
+
+if [ $PROBLEMS -eq 0 ]; then
+    echo -e "${GREEN}Todo listo para continuar 🚀${NC}"
+else
+    echo -e "${YELLOW}Se encontraron $PROBLEMS problema(s) que requieren atención ⚠️${NC}"
+fi
+echo ""
+
+# Ofrecer comandos rápidos
+echo "💡 COMANDOS RÁPIDOS:"
+echo ""
+echo "   ./quick-check.sh          # Ejecutar esta verificación"
+echo "   ./fix-imports.sh          # Corregir importaciones"
+echo "   npm install               # Instalar dependencias"
+echo "   npm run dev               # Servidor desarrollo"
+echo "   npm run build             # Build producción"
+echo "   npx vitest run            # Ejecutar tests"
+echo ""
+</file>
+
+<file path="public/favicon.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 128 128">
+    <path d="M50.4 78.5a75.1 75.1 0 0 0-28.5 6.9l24.2-65.7c.7-2 1.9-3.2 3.4-3.2h29c1.5 0 2.7 1.2 3.4 3.2l24.2 65.7s-11.6-7-28.5-7L67 45.5c-.4-1.7-1.6-2.8-2.9-2.8-1.3 0-2.5 1.1-2.9 2.7L50.4 78.5Zm-1.1 28.2Zm-4.2-20.2c-2 6.6-.6 15.8 4.2 20.2a17.5 17.5 0 0 1 .2-.7 5.5 5.5 0 0 1 5.7-4.5c2.8.1 4.3 1.5 4.7 4.7.2 1.1.2 2.3.2 3.5v.4c0 2.7.7 5.2 2.2 7.4a13 13 0 0 0 5.7 4.9v-.3l-.2-.3c-1.8-5.6-.5-9.5 4.4-12.8l1.5-1a73 73 0 0 0 3.2-2.2 16 16 0 0 0 6.8-11.4c.3-2 .1-4-.6-6l-.8.6-1.6 1a37 37 0 0 1-22.4 2.7c-5-.7-9.7-2-13.2-6.2Z" />
+    <style>
+        path { fill: #000; }
+        @media (prefers-color-scheme: dark) {
+            path { fill: #FFF; }
+        }
+    </style>
+</svg>
+</file>
+
+<file path="src/lib/ai/providers/deepseek.ts">
+// src/lib/ai-service.ts
+
+export async function generatePedagogicalFeedback(
+  text: string,
+  level: string,
+  context: string
+): Promise<string> {
+
+  // ⚠️ Stub temporal (IA fake controlada)
+  // Esto nos permite estabilizar TODO el flujo
+  // Antes de conectar DeepSeek / OpenAI
+
+  return `
+  <p><strong>Feedback (${level})</strong></p>
+
+  <p><em>Contexto:</em> ${context}</p>
+
+  <p>He leído tu texto y aquí va un primer comentario general:</p>
+
+  <ul>
+    <li>Tu producción escrita es comprensible.</li>
+    <li>Se nota el esfuerzo por aplicar vocabulario básico.</li>
+    <li>Hay errores normales para el nivel ${level}, lo cual es esperado.</li>
+  </ul>
+
+  <p><strong>Sugerencia general:</strong><br/>
+  Revisa mayúsculas en sustantivos y la posición del verbo.</p>
+
+  <p>👉 En la siguiente versión recibirás correcciones detalladas frase por frase.</p>
+  `;
+}
+</file>
+
+<file path="src/lib/ai/prompt-builder.ts">
+import type { WochenKontext } from '../domain/schemas/week-context.schema';
+
+export function buildPedagogicalPrompt(
+  text: string,
+  context: WochenKontext,
+  studentName: string
+): string {
+  const darfKorrigieren = context.korrektur.darf_korrigieren.join(', ');
+  const darfNichtKorrigieren = context.korrektur.darf_nicht_korrigieren.join(', ');
+  const themen = context.gesehen.wortschatz.themen.join(', ');
+  
+  return `
+Actúa como profesor de alemán para ${studentName}.
+Nivel: ${context.kurs}, Woche: ${context.woche}
+
+EN CLASE SE HA VISTO:
+- Temas: ${themen}
+- Gramática: ${context.gesehen.grammatik.kasus.join(', ')}
+- Pragmática: ${context.gesehen.soziopragmatik.join(', ')}
+
+NO SE HA VISTO:
+- ${context.nicht_gesehen.grammatik.join(', ')}
+
+LA IA PUEDE CORREGIR:
+- ${darfKorrigieren}
+
+LA IA NO DEBE CORREGIR:
+- ${darfNichtKorrigieren}
+
+REGLAS:
+- Máximo ${context.korrektur.max_fehler} grupos de errores
+- Evitar sobre-corrección: ${context.korrektur.ueberkorrektur_vermeiden}
+- Tono formativo, no evaluativo
+- Feedback en español con ejemplos en alemán
+- HTML simple (<p>, <ul>, <li>, <strong>)
+
+TEXTO DEL ESTUDIANTE:
+${text}
+`;
+}
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w01.js">
+export default {
+  id: 'a1-w01',
+  level: 'aleman1',
+  slug: 'w01',
+  title: 'Woche 1: Begrüßungen',
+
+  instructions: {
+    intro:
+      'Antes de comenzar, recuerda repasar tus apuntes de las sesiones presenciales y los refuerzos de los miércoles. Esta actividad está diseñada para consolidar lo visto en clase.',
+    grammarReminder: [
+      'Ich: Ich heiße... / Ich wohne in...',
+      'Er / Sie: Er heißt... / Sie wohnt in...'
+    ]
+  },
+
+  source: {
+    type: 'youtube',
+    embedUrl: 'https://www.youtube.com/embed/_mS0EV3laEk'
+  },
+
+  activity: {
+    title: 'Tu Tarea (Hausaufgabe)',
+    parts: [
+      {
+        id: 'part1',
+        label: '1. Tu presentación personal:',
+        help: 'Incluye saludo, nombre, dónde vives y despedida.',
+        placeholder: 'Ej: Hallo! Ich heiße... Ich wohne in... Tschüss!',
+        rows: 3
+      },
+      {
+        id: 'part2',
+        label: '2. Presenta a un personaje famoso germanoparlante.',
+        help: 'Usa: Das ist... Er/Sie heißt... Er/Sie wohnt in...',
+        placeholder: 'Describe al personaje...',
+        rows: 3
+      },
+      {
+        id: 'part3',
+        label: '3. ¿Cómo fue tu experiencia con el video a nivel auditivo y cultural?',
+        help: '¿Qué saludo o despedida utilizarás más y por qué?',
+        placeholder: 'Escribe aquí tus impresiones sobre el video...',
+        rows: 4
+      }
+    ]
+  }
+};
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w03.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w04.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w05.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w06.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w07.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w08.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w09.js">
+
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w10.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w01.js">
+export default {
+  id: 'a2-w01',
+  level: 'aleman2',
+  slug: 'w01',
+  title: 'Woche 1: Ein neuer Anfang',
+
+  instructions: {
+    intro:
+      'Willkommen en Deutsch 2.\n\n' +
+      'En este video escucharás alemán real, hablado por una persona real.\n\n' +
+      'Importante:\n' +
+      'No necesitas entender todo.\n' +
+      'Concéntrate en las ideas principales y en los datos que reconozcas.\n\n' +
+      'Objetivo:\n' +
+      '– Comprender quién es Konrad\n' +
+      '– Escribir oraciones simples con Subjekt (Wer?) y Objekt (Wen/Was?)\n\n' +
+      'Indicaciones:\n' +
+      '– Escribe frases cortas. Una idea por frase.\n' +
+      '– No uses diccionario. Confía en lo que ya sabes.',
+
+    grammarReminder: [
+      'Nominativ → Wer? (Das ist Konrad. Er ist Trainer.)',
+      'Akkusativ → Wen oder was? (Er trainiert die Mannschaft.)',
+      'Solo masculino cambia: der → den / einen'
+    ]
+  },
+
+  source: {
+    type: 'youtube',
+    embedUrl: 'https://www.youtube.com/embed/B1oyDgM_uFY'
+  },
+
+  activity: {
+    title: 'Deine Aufgaben',
+    parts: [
+      {
+        id: 'part1',
+        label: '1. Wer ist Konrad? (Nominativ)',
+        help: '3–4 Sätze. Fokus: Name, Beruf, Alter, Nationalität.',
+        placeholder:
+          'Das ist Konrad. Er ist Trainer. Er ist sehr motiviert.',
+        rows: 3
+      },
+      {
+        id: 'part2',
+        label: '2. Was macht er heute? (Akkusativ)',
+        help: '3 kurze Sätze. Fokus: Was macht er (gern / nicht gern)?',
+        placeholder:
+          'Er trainiert die Mannschaft. Er benutzt einen Rollstuhl.',
+        rows: 3
+      },
+      {
+        id: 'part3',
+        label: '3. Reflexión personal',
+        help:
+          'Puedes escribir en alemán o español. Aquí no se evalúa la gramática.',
+        placeholder:
+          'Ich finde seine Geschichte inspirierend... / Pienso que...',
+        rows: 4
+      }
+    ]
+  }
+};
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w03.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w04.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w05.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w06.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w07.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w08.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w09.js">
+
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w10.js">
+
+</file>
+
+<file path="src/lib/domain/schemas/submission.schema.ts">
+// src/lib/domain/schemas/submission.schema.ts
+import { z } from "zod";
+
+export const SubmissionInputSchema = z.object({
+  firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  level: z.enum(["aleman1", "aleman2"]), // Asegura coherencia con los slugs
+  week: z.string().regex(/^w\d{2}$/, "El formato de la semana debe ser 'w01', 'w02', etc."),
+  content: z.string().min(10, "La respuesta es muy corta. ¡Intenta explayarte un poco más!"),
+  sessionId: z.string().optional(), // Para vincular con la sesión de Supabase si existe
+});
+
+export type SubmissionInput = z.infer<typeof SubmissionInputSchema>;
+</file>
+
+<file path="src/lib/domain/weeks/a1-woche-01.ts">
+// src/lib/domain/weeks/a1-woche-01.ts
+import type { WochenKontext } from '../schemas/week-context.schema';
+
+export const A1_WOCHE_01: WochenKontext = {
+  kurs: "A1",
+  woche: 1,
+  
+  gesehen: {
+    grammatik: {
+      verbzweistellung: true,
+      kasus: ["Nominativ"],
+    },
+    wortschatz: {
+      themen: ["Begrüßungen", "Abschied", "Vorstellung", "Wohnen"],
+    },
+    soziopragmatik: ["du/Sie", "formelle Situation", "informelle Situation"],
+  },
+  
+  nicht_gesehen: {
+    grammatik: ["Akkusativ", "Dativ", "Genitiv", "Großschreibung"],
+    soziopragmatik: ["nonverbale Kommunikation", "Umgangssprache"],
+  },
+  
+  korrektur: {
+    darf_korrigieren: ["Begrüßung", "Abschied", "Verbformen", "Wortstellung"],
+    darf_nicht_korrigieren: ["Großschreibung", "Nebensätze", "Perfekt", "Artikeldeklination"],
+    max_fehler: 3,
+    ueberkorrektur_vermeiden: true,
+  },
+};
+</file>
+
+<file path="src/lib/domain/weeks/a1-woche-02.ts">
+// src/lib/domain/weeks/a1-woche-02.ts
+import type { WochenKontext } from '../schemas/week-context.schema';
+
+/**
+ * Alemán 1 - Semana 2
+ * Tema: W-Fragen und Verbzweistellung
+ * 
+ * Enfoque pedagógico:
+ * - Consolidación de presentaciones formales e informales
+ * - Introducción a preguntas W (Wie, Woher, Wo, Wie alt)
+ * - Números cardinales del 0 al 12
+ * - Verbzweistellung en preguntas
+ */
+export const A1_WOCHE_02: WochenKontext = {
+  kurs: "A1",
+  woche: 2,
+  title: "Woche 2: W-Fragen und Verbzweistellung",
+  
+  gelernt: {
+    grammatik: {
+      // Estructura de oración
+      verbzweistellung: true,
+      aussagesatz: true,
+      
+      // Preguntas
+      wFragen: [
+        "Wie heißt du?",
+        "Wie heißt er/sie?",
+        "Wie heißen Sie?",
+        "Woher kommst du?",
+        "Woher kommen Sie?",
+        "Wo wohnst du?",
+        "Wo wohnen Sie?",
+        "Wie alt bist du?",
+        "Wie alt sind Sie?",
+        "Wie ist dein Vorname?",
+        "Wie ist dein Familienname?",
+        "Was bist du von Beruf?",
+        "Was sind Sie von Beruf?"
+      ],
+      jaNeinfragen: false,
+      
+      // Casos (solo Nominativ hasta ahora)
+      kasus: {
+        nominativ: {
+          gelernt: false,
+          verwendung: ["Subjekt", "nach sein"]
+        }
+      },
+      
+      // Verbos
+      konjugation: {
+        verben: ["sein", "heißen", "kommen", "wohnen"],
+        personalpronomen: ["ich", "du", "er", "sie", "es", "wir", "ihr", "sie", "Sie",],
+        regelmäßig: ["heißen", "kommen", "wohnen"],
+        unregelmäßig: ["sein"]
+      },
+      
+      personalpronomen: ["ich", "du", "er", "sie", "es", "wir", "ihr", "sie", "Sie",],
+      
+      // Números cardinales 0-12 (EXPLÍCITO)
+      zahlen: {
+        kardinale: {
+          gelernt: true,
+          range: {
+            von: 0,
+            bis: 12
+          }
+        }
+      }
+    },
+    
+    wortschatz: {
+      themen: [
+        "Personalinformationen",
+        "Identität",
+        "Ortsangaben",
+        "Alter",
+        "Namen"
+      ],
+      
+      // Alfabeto y deletreo
+      alphabet: {
+        gelernt: false,
+        buchstabieren: false
+      },
+      
+      // Países (básico)
+      länder: {
+        gelernt: true,
+        beispiele: ["Deutschland", "Mexiko", "Österreich"]
+      },
+      
+      // Expresiones básicas
+      ausdrücke: {
+        begrüßung: [
+          "Guten Tag",
+          "Hallo",
+          "Guten Morgen",
+          "Moin",
+          "Servus"
+        ],
+        verabschiedung: [
+          "Auf Wiedersehen",
+          "Tschüss",
+          "Bis bald", 
+          "Tschüssi"
+        ]
+      }
+    },
+    
+    soziopragmatik: [
+      "du/Sie",
+      "formelle Situation",
+      "informelle Situation"
+    ]
+  },
+  
+  nicht_gelernt: {
+    grammatik: [
+      "Akkusativ",
+      "Dativ",
+      "Genitiv",
+      "Plural",
+      "Adjektive",
+      "Perfekt",
+      "Präteritum",
+      "Modalverben",
+      "Trennbare Verben",
+      "Possessivartikel",
+      "Nebensätze"
+    ],
+    wortschatz: [
+      "Berufe (detallado)",
+      "Familie (detallado)",
+      "Hobbys",
+      "Kleidung",
+      "Essen",
+      "Haushaltsachen",
+      "Schulsachen"
+    ],
+    soziopragmatik: [
+      "nonverbale Kommunikation",
+      "Umgangssprache",
+      "Regionalismen"
+    ]
+  },
+  
+  korrektur: {
+    darf_korrigieren: [
+      "Begrüßung",
+      "Abschied",
+      "Verbformen",
+      "Wortstellung",
+      "W-Fragen",
+      "Zahlen"
+    ],
+    darf_nicht_korrigieren: [
+      "Großschreibung",
+      "Nebensätze",
+      "Perfekt",
+      "Artikeldeklination",
+      "Akkusativ",
+      "Dativ",
+      "Genitiv",
+      "Vokabular nicht gelernt"
+    ],
+    max_fehler: 3,
+    ueberkorrektur_vermeiden: true,
+    fokus: [
+      "Korrekte Verwendung von W-Fragen",
+      "Unterscheidung du/Sie",
+      "Verbzweistellung in W-Fragen"
+    ],
+    toleranz: "hoch" // Primera semana con W-Fragen
+  },
+  
+  notizen: {
+    schwerpunkt: "Estudiantes deben poder hacer preguntas básicas de presentación y responderlas correctamente",
+    warnung: [
+      "No corregir el uso de números mayores a 12 si aparecen",
+      "Ser tolerante con errores de mayúsculas (nicht gelernt formalmente)",
+      "Enfocarse en la estructura de las preguntas, no en la ortografía perfecta"
+    ],
+    tipps: [
+      "Practicar W-Fragen con compañeros",
+      "Memorizar números 0-12",
+      "Distinguir siempre entre du y Sie según el contexto"
+    ]
+  }
+};
+</file>
+
+<file path="src/lib/domain/weeks/a2-woche-02.ts">
+// src/lib/domain/weeks/a2-woche-02.ts
+import type { WochenKontext } from '../schemas/week-context.schema';
+
+/**
+ * Alemán 2 - Semana 2
+ * Tema: Uhrzeit und Trennbare Verben
+ * 
+ * Enfoque pedagógico:
+ * - Uhrzeit formal e informal
+ * - Introducción a verbos separables
+ * - Consolidación de Akkusativ
+ * - Actividades cotidianas y rutinas
+ */
+export const A2_WOCHE_02: WochenKontext = {
+  kurs: "A2",
+  woche: 2,
+  title: "Woche 2: Uhrzeit und Trennbare Verben",
+  
+  gelernt: {
+    grammatik: {
+      // Estructura de oración
+      verbzweistellung: true,
+      aussagesatz: true,
+      
+      // Preguntas
+      wFragen: [
+        "Wie spät ist es?",
+        "Wie viel Uhr ist es?",
+        "Wann...?",
+        "Um wie viel Uhr...?"
+      ],
+      jaNeinfragen: false,
+      
+      // Casos
+      kasus: {
+        nominativ: {
+          gelernt: true,
+          verwendung: ["Subjekt", "sein", "heissen"]
+        },
+        akkusativ: {
+          gelernt: true,
+          artikel: ["den", "einen"], // Solo cambios en masculino
+          verwendung: ["Direktes Objekt"]
+        }
+      },
+      
+      // Artículos
+      artikel: {
+        bestimmter: {
+          gelernt: true,
+          formen: ["der", "die", "das"]
+        },
+        unbestimmter: {
+          gelernt: true,
+          formen: ["ein", "eine"]
+        },
+        negativer: {
+          gelernt: true,
+          formen: ["kein", "keine"]
+        }
+      },
+      
+      // Verbos
+      konjugation: {
+        verben: [
+          "sehen", "fahren", "lesen", "kommen", "gehen",
+          "aufstehen", "einkaufen gehen", "vorlesen", "auskommen"
+        ],
+        personalpronomen: ["ich", "du", "er/sie/es", "wir", "ihr", "sie","Sie"],
+        regelmäßig: ["kommen", "gehen", "wohnen", "kochen"],
+        unregelmäßig: ["sehen", "fahren", "lesen", "schlafen", "sein"]
+      },
+      
+      // Verbos separables (NUEVO en A2)
+      trennbareVerben: {
+        gelernt: true,
+        prefixe: ["vor-", "ein-", "aus-", "auf-"],
+        beispiele: [
+          "aufstehen",
+          "ausgehen",
+          "vorlesen"
+        ]
+      },
+      
+      personalpronomen: ["ich", "du", "er", "sie", "es", "wir", "ihr", "sie", "Sie"],
+      
+      // Adverbios temporales
+      adverbien: {
+        temporal: {
+          gelernt: false,
+          beispiele: [
+            "heute", "morgen", "gestern",
+            "jetzt", "später", "früh", "spät",
+            "um ... Uhr"
+          ]
+        }
+      },
+      
+      // Números (se asume conocimiento de A1)
+      zahlen: {
+        kardinale: {
+          gelernt: true,
+          range: {
+            von: 0,
+            bis: 100
+          }
+        }
+      }
+    },
+    
+    wortschatz: {
+      themen: [
+        "Uhrzeit",
+      ],
+      
+      // Uhrzeit (EXPLÍCITO)
+      uhrzeit: {
+        gelernt: true,
+        formal: [
+          "Wie spät ist es?",
+          "Es ist ... Uhr",
+          "Es ist zehn Uhr zwanzig"
+        ],
+        informal: [
+          "Wie viel Uhr ist es?",
+          "Es ist halb drei",
+          "Es ist Viertel vor/nach"
+        ]
+      },
+      
+      // Actividades diarias
+      aktivitäten: {
+        gelernt: true,
+        tagesablauf: [
+          "aufstehen",
+          "frühstücken",
+          "einkaufen gehen",
+          "nach Hause kommen"
+        ]
+      },
+      
+      // Días de la semana (básico)
+      wochentage: {
+        gelernt: true,
+        alle: true
+      },
+      
+      // Expresiones útiles
+      ausdrücke: {
+        begrüßung: [
+          "Guten Tag",
+          "Hallo",
+          "Moin",
+          "Servus",
+          "Wie geht es Ihnen?",
+          "Wie geht's?"
+        ],
+        verabschiedung: [
+          "Auf Wiedersehen",
+          "Tschüss",
+          "Servus"
+          "Bis später",
+          "Bis morgen"
+        ]
+      }
+    },
+    
+    soziopragmatik: [
+      "du/Sie",
+      "formelle Situation",
+      "informelle Situation",
+      "Zeitangaben"
+    ]
+  },
+  
+  nicht_gelernt: {
+    grammatik: [
+      "Dativ",
+      "Genitiv",
+      "Perfekt mit haben/sein",
+      "Präteritum",
+      "Modalverben (mögen, können)",
+      "Possessivartikel im Akkusativ",
+      "Nebensätze",
+      "Konjunktiv"
+    ],
+    wortschatz: [
+      "Gefühle (detallado)",
+      "Wetter",
+      "Essen im Restaurant (detallado)",
+      "Reisen",
+      "Lebensmittel (detallado)"
+    ],
+    soziopragmatik: [
+      "nonverbale Kommunikation",
+      "Umgangssprache",
+      "Regionalismen"
+    ]
+  },
+  
+  korrektur: {
+    darf_korrigieren: [
+      "Wortstellung",
+      "Verbformen",
+      "W-Fragen",
+      "Stundenangabe",
+      "Akkusativ",
+      "Trennbare Verben"
+    ],
+    darf_nicht_korrigieren: [
+      "Großschreibung",
+      "Dativ",
+      "Genitiv",
+      "Reflexivpronomen",
+      "Nebensätze",
+      "Perfekt",
+      "Modalverben",
+      "Vokabular nicht gelernt"
+    ],
+    max_fehler: 4, // Aumentado para A2 (más complejidad)
+    ueberkorrektur_vermeiden: true,
+    fokus: [
+      "Separación correcta de verbos trennbares",
+      "Uso correcto de Uhrzeit formal vs informal",
+      "Uso correcto preposición um para horas",
+      "Uso correcto preposición am para días de la semana",
+      "Akkusativ en contextos cotidianos"
+    ],
+    toleranz: "mittel" // Nivel intermedio
+  },
+  
+  notizen: {
+    schwerpunkt: "Estudiantes deben poder describir acciones cotidianas en primera o tercera persona y expresar la hora correctamente",
+    warnung: [
+      "Verbos separables son nuevos - ser paciente con errores de separación",
+      "Enfocarse en la estructura de separación, no en vocabulario avanzado"
+    ],
+    tipps: [
+      "Practicar verbos separables con ejemplos visuales",
+      "Memorizar expresiones de tiempo formales e informales",
+      "Crear un horario diario en alemán como práctica"
+    ]
+  }
+};
+</file>
+
+<file path="src/lib/domain/weeks/week-registry.ts">
+// src/lib/domain/weeks/week-registry.ts
+import type { WochenKontext } from '../schemas/week-context.schema';
+import { A1_WOCHE_02 } from './a1-woche-02';
+import { A2_WOCHE_01 } from './a2-woche-01';
+import { A2_WOCHE_02 } from './a2-woche-02';
+
+/**
+ * Registro centralizado de todos los contextos semanales
+ * 
+ * Este registro sirve como única fuente de verdad para obtener
+ * el contexto pedagógico de cualquier semana de cualquier curso.
+ */
+
+export type Kurs = "A1" | "A2";
+export type Woche = number;
+
+/**
+ * Estructura del registro de semanas
+ */
+interface WeekRegistry {
+  A1: Record<number, WochenKontext>;
+  A2: Record<number, WochenKontext>;
+}
+
+/**
+ * Registro completo de contextos semanales
+ */
+export const WEEK_CONTEXTS: WeekRegistry = {
+  A1: {
+    // Semana 1 pendiente de implementación
+    2: A1_WOCHE_02,
+    // Semanas 3-12 pendientes de implementación
+  },
+  A2: {
+    1: A2_WOCHE_01,
+    2: A2_WOCHE_02,
+    // Semanas 3-12 pendientes de implementación
+  }
+};
+
+/**
+ * Obtiene el contexto de una semana específica
+ * 
+ * @param kurs - Nivel del curso (A1 o A2)
+ * @param woche - Número de semana
+ * @returns El contexto de la semana o null si no existe
+ * 
+ * @example
+ * ```typescript
+ * const context = getWeekContext("A1", 2);
+ * if (context) {
+ *   console.log(context.title); // "Woche 2: W-Fragen und Verbzweistellung"
+ * }
+ * ```
+ */
+export function getWeekContext(kurs: Kurs, woche: Woche): WochenKontext | null {
+  const courseWeeks = WEEK_CONTEXTS[kurs];
+  if (!courseWeeks) {
+    console.warn(`Curso no encontrado: ${kurs}`);
+    return null;
+  }
+  
+  const weekContext = courseWeeks[woche];
+  if (!weekContext) {
+    console.warn(`Semana no encontrada: ${kurs} - Woche ${woche}`);
+    return null;
+  }
+  
+  return weekContext;
+}
+
+/**
+ * Verifica si existe un contexto para una semana específica
+ * 
+ * @param kurs - Nivel del curso (A1 o A2)
+ * @param woche - Número de semana
+ * @returns true si existe el contexto, false si no
+ */
+export function hasWeekContext(kurs: Kurs, woche: Woche): boolean {
+  return getWeekContext(kurs, woche) !== null;
+}
+
+/**
+ * Obtiene todas las semanas disponibles para un curso
+ * 
+ * @param kurs - Nivel del curso (A1 o A2)
+ * @returns Array de números de semana disponibles
+ * 
+ * @example
+ * ```typescript
+ * const availableWeeks = getAvailableWeeks("A2");
+ * console.log(availableWeeks); // [1, 2]
+ * ```
+ */
+export function getAvailableWeeks(kurs: Kurs): number[] {
+  const courseWeeks = WEEK_CONTEXTS[kurs];
+  if (!courseWeeks) {
+    return [];
+  }
+  
+  return Object.keys(courseWeeks)
+    .map(Number)
+    .sort((a, b) => a - b);
+}
+
+/**
+ * Obtiene todos los cursos disponibles
+ * 
+ * @returns Array de cursos disponibles
+ */
+export function getAvailableCourses(): Kurs[] {
+  return Object.keys(WEEK_CONTEXTS) as Kurs[];
+}
+
+/**
+ * Obtiene información de resumen de un contexto
+ * 
+ * @param kurs - Nivel del curso
+ * @param woche - Número de semana
+ * @returns Objeto con información resumida o null
+ */
+export function getWeekSummary(kurs: Kurs, woche: Woche) {
+  const context = getWeekContext(kurs, woche);
+  if (!context) return null;
+  
+  return {
+    kurs: context.kurs,
+    woche: context.woche,
+    title: context.title,
+    schwerpunkt: context.notizen?.schwerpunkt,
+    temas: context.gelernt.wortschatz.themen,
+    maxFehler: context.korrektur.max_fehler,
+  };
+}
+
+/**
+ * Valida que un curso y semana sean válidos
+ * 
+ * @param kurs - Nivel del curso
+ * @param woche - Número de semana
+ * @throws Error si el curso o semana no son válidos
+ */
+export function validateCourseAndWeek(kurs: string, woche: number): void {
+  const validCourses: Kurs[] = ["A1", "A2"];
+  
+  if (!validCourses.includes(kurs as Kurs)) {
+    throw new Error(`Curso inválido: ${kurs}. Cursos válidos: ${validCourses.join(", ")}`);
+  }
+  
+  if (woche < 1 || woche > 12) {
+    throw new Error(`Semana inválida: ${woche}. Debe estar entre 1 y 12`);
+  }
+  
+  if (!hasWeekContext(kurs as Kurs, woche)) {
+    throw new Error(`Contexto no implementado para ${kurs} - Woche ${woche}`);
+  }
+}
+
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+export default WEEK_CONTEXTS;
+</file>
+
+<file path="src/lib/domain/index.ts">
+
+</file>
+
+<file path="src/lib/navigation.ts">
+// src/lib/navigation.js
+
+export function getBackLink(lesson) {
+  return {
+    href: `/${lesson.level}`,
+    label: 'Volver al mapa'
+  };
+}
+</file>
+
+<file path="src/lib/roadmap.ts">
+// src/lib/roadmap.ts
+/**
+ * CONFIGURACIÓN MAESTRA DE CURSOS
+ * Fuente de verdad para navegación y activación de semanas
+ * ⚠️ NO contiene lógica pedagógica - solo metadata de disponibilidad
+ * La lógica pedagógica vive en: src/lib/domain/weeks/
+ */
+
+export interface WeekConfig {
+  id: string;      // Ej: 'a1-w01' (para Supabase)
+  slug: string;    // Ej: 'w01' (para rutas)
+  title: string;   // Título humano visible
+  active: boolean; // ¿Visible para estudiantes?
+}
+
+export interface CourseConfig {
+  title: string;
+  path: 'aleman1' | 'aleman2'; // Ruta canónica
+  weeks: WeekConfig[];
+}
+
+export const COURSE_CONFIG: Record<'aleman1' | 'aleman2', CourseConfig> = {
+  aleman1: {
+    title: 'Alemán 1: Fundamentos',
+    path: 'aleman1',
+    weeks: [
+      { id: 'a1-w01', slug: 'w01', title: 'Woche 1: Begrüßungen', active: true },
+      { id: 'a1-w02', slug: 'w02', title: 'Woche 2: Zahlen & Uhrzeit', active: false },
+      { id: 'a1-w03', slug: 'w03', title: 'Woche 3: Essen & Trinken', active: false },
+      { id: 'a1-w04', slug: 'w04', title: 'Woche 4: Freizeit', active: false },
+      { id: 'a1-w05', slug: 'w05', title: 'Woche 5: Familie', active: false },
+      { id: 'a1-w06', slug: 'w06', title: 'Woche 6: Wohnen', active: false },
+      { id: 'a1-w07', slug: 'w07', title: 'Woche 7: Körper', active: false },
+      { id: 'a1-w08', slug: 'w08', title: 'Woche 8: Termine', active: false },
+      { id: 'a1-w09', slug: 'w09', title: 'Woche 9: Kleidung', active: false },
+      { id: 'a1-w10', slug: 'w10', title: 'Woche 10: Abschluss', active: false }
+    ]
+  },
+  aleman2: {
+    title: 'Alemán 2: Intermedio',
+    path: 'aleman2',
+    weeks: [
+      { id: 'a2-w01', slug: 'w01', title: 'Woche 1: Konrads Geschichte', active: true },
+      { id: 'a2-w02', slug: 'w02', title: 'Woche 2: Reisen & Urlaub', active: false },
+      { id: 'a2-w03', slug: 'w03', title: 'Woche 3: Arbeitswelt', active: false },
+      { id: 'a2-w04', slug: 'w04', title: 'Woche 4: Gesundheit', active: false },
+      { id: 'a2-w05', slug: 'w05', title: 'Woche 5: Medien & Tech', active: false },
+      { id: 'a2-w06', slug: 'w06', title: 'Woche 6: Umwelt', active: false },
+      { id: 'a2-w07', slug: 'w07', title: 'Woche 7: Politik', active: false },
+      { id: 'a2-w08', slug: 'w08', title: 'Woche 8: Geschichte', active: false },
+      { id: 'a2-w09', slug: 'w09', title: 'Woche 9: Zukunft', active: false },
+      { id: 'a2-w10', slug: 'w10', title: 'Woche 10: Finale', active: false }
+    ]
+  }
+};
+
+// ⚠️ FUNCIÓN ELIMINADA (Legacy)
+// La función renderRoadmap() fue removida porque:
+// - Era código cliente mezclado con configuración
+// - CourseList.astro ya renderiza directamente desde COURSE_CONFIG
+// - Violaba separación de responsabilidades (UI vs Datos)
+// - Generaba deuda técnica al mezclar DOM manipulation con routing
+</file>
+
+<file path="src/lib/supabase.js">
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_KEY
+);
+</file>
+
+<file path="src/pages/feedback/[id].astro">
+---
+import Layout from '../../layouts/Layout.astro';
+import { supabase } from '../../lib/supabase';
+
+const { id } = Astro.params;
+
+const { data: submission } = await supabase
+  .from('submissions')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (!submission) {
+  throw new Error('Feedback no encontrado');
+}
+---
+
+<Layout title="Tu Feedback">
+  <div class="container">
+
+    <a href="/dashboard" style="color:var(--accent-primary); font-weight:bold;">
+      ← Volver al Dashboard
+    </a>
+
+    <h1 style="margin-top:1rem;">🧠 Feedback del Tutor</h1>
+
+    <div class="card" style="margin-top:1.5rem;">
+      <h3>✍️ Tu respuesta</h3>
+      <pre style="white-space: pre-wrap; opacity:0.85;">
+{submission.content_text}
+      </pre>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem; border-left:4px solid var(--accent-primary);">
+      <h3>🤖 Corrección y Comentarios</h3>
+      <div innerHTML={submission.ai_feedback}></div>
+    </div>
+
+    <p style="margin-top:2rem; opacity:0.6; font-size:0.8rem;">
+      Enviado el {new Date(submission.created_at).toLocaleString()}
+    </p>
+
+  </div>
+</Layout>
+</file>
+
+<file path=".node-version">
+18
+</file>
+
+<file path="src/components/CourseList.astro">
+---
+// src/components/CourseList.astro
+import { COURSE_CONFIG } from '@lib/roadmap';
+
+interface Props {
+  levelId: string;
+}
+
+const { levelId } = Astro.props;
+const config = COURSE_CONFIG[levelId];
+
+if (!config) throw new Error(`Nivel no encontrado: ${levelId}`);
+---
+
+<div class="container" style="padding-top: 1rem;">
+  <header style="margin-bottom: 2rem; text-align: center;">
+    <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">
+      {config.title}
+    </h1>
+    <p style="font-size: 0.9rem; opacity: 0.8;">
+      Tu ruta de aprendizaje paso a paso
+    </p>
+  </header>
+
+  <div
+    class="card"
+    style="padding: 0; overflow: hidden; border: 1px solid var(--border-color);"
+  >
+    {config.weeks.map((week) => {
+      const isLocked = !week.active;
+
+      // ⬇️ SOLO ESTO CAMBIA
+      const weekLabel = week.slug?.toUpperCase(); // W01
+      const link = `/learn/${config.path}/${week.slug}`;
+
+      return (
+        <div style="border-bottom: 1px solid var(--border-color);">
+          {isLocked ? (
+            /* ESTADO BLOQUEADO */
+            <div
+              class="locked"
+              style="padding: 1.5rem; display: flex; align-items: center; gap: 1rem;"
+            >
+              <span style="font-size: 1.5rem; opacity: 0.5;">🔒</span>
+              <div>
+                <span
+                  style="
+                    font-size: 0.7rem;
+                    text-transform: uppercase;
+                    color: var(--text-secondary);
+                    display: block;
+                    letter-spacing: 1px;
+                  "
+                >
+                  Woche {weekLabel}
+                </span>
+                <h3
+                  style="
+                    font-size: 1rem;
+                    margin: 0;
+                    color: var(--text-secondary);
+                    text-shadow: none;
+                  "
+                >
+                  {week.title}
+                </h3>
+              </div>
+            </div>
+          ) : (
+            /* ESTADO ACTIVO */
+            <a
+              href={link}
+              style="
+                text-decoration: none;
+                display: block;
+                padding: 1.5rem;
+                background: rgba(46, 249, 158, 0.03);
+                transition: background 0.2s;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <span
+                  style="
+                    font-size: 1.5rem;
+                    text-shadow: 0 0 10px var(--accent-primary);
+                  "
+                >
+                  🟢
+                </span>
+
+                <div style="flex: 1;">
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 0.5rem;
+                      margin-bottom: 0.2rem;
+                    "
+                  >
+                    <span
+                      style="
+                        font-size: 0.7rem;
+                        text-transform: uppercase;
+                        color: var(--accent-primary);
+                        letter-spacing: 1px;
+                        font-weight: bold;
+                      "
+                    >
+                      Woche {weekLabel}
+                    </span>
+                    <span
+                      class="status-badge"
+                      style="font-size: 0.6rem; padding: 2px 6px;"
+                    >
+                      ACTIVA
+                    </span>
+                  </div>
+
+                  <h3
+                    style="
+                      font-size: 1.1rem;
+                      margin: 0;
+                      color: var(--text-primary);
+                      text-shadow: none;
+                    "
+                  >
+                    {week.title}
+                  </h3>
+                </div>
+
+                <div style="color: var(--accent-primary);">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </a>
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
+</file>
+
+<file path="src/components/Navbar.astro">
+---
+//src/components/Navbar.astro
+---
+<nav class="navbar">
+  <a href="/" class="brand">huhuGERMAN</a>
+  <div id="auth-container">
+    <button id="login-btn" class="btn">Login con Google</button>
+  </div>
+</nav>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const authContainer = document.getElementById('auth-container');
+  
+  // Verificar sesión al cargar
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session) {
+    authContainer.innerHTML = `
+      <a href="/dashboard" style="margin-right: 1rem; font-weight:bold;">Mi Dashboard</a>
+      <button id="logout-btn" class="btn-outline" style="padding: 0.4rem 0.8rem;">Salir</button>
+    `;
+    
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    });
+  } else {
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/dashboard' }
+      });
+    });
+  }
+</script>
+</file>
+
+<file path="src/layouts/Layout.astro">
+---
+// src/layouts/Layout.astro
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Aprende alemán con IA y contexto real" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar container" style="margin-bottom: 0; padding-top: 1.5rem;">
+      <a href="/" class="brand">
+        huhu<span style="color: var(--accent-primary);">GERMAN</span>
+      </a>
+      
+      <div class="flex items-center gap-4">
+        <button id="auth-btn" class="btn-auth">
+          <span id="auth-text">Cargando...</span>
+        </button>
+      </div>
+    </nav>
+
+    <slot />
+
+    <footer style="text-align: center; padding: 4rem 1rem; color: var(--text-secondary); font-size: 0.9rem; opacity: 0.6;">
+      <p>&copy; {new Date().getFullYear()} Huhugerman. Hecho con 💚 en CDMX.</p>
+    </footer>
+
+    <script>
+      import { supabase } from '../lib/supabase';
+
+      const authBtn = document.getElementById('auth-btn');
+      const authText = document.getElementById('auth-text');
+
+      async function updateAuthUI() {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          // ESTADO: LOGUEADO -> Mostrar "Cerrar Sesión"
+          authText.innerText = 'Cerrar Sesión';
+          authBtn.classList.remove('login-mode');
+          authBtn.classList.add('logout-mode');
+          
+          // Acción al hacer click: Logout
+          authBtn.onclick = async () => {
+            await supabase.auth.signOut();
+            localStorage.clear(); // Limpieza extra por seguridad
+            window.location.href = '/';
+          };
+        } else {
+          // ESTADO: NO LOGUEADO -> Mostrar "Login con Google"
+          authText.innerText = 'Login con Google';
+          authBtn.classList.add('login-mode');
+          authBtn.classList.remove('logout-mode');
+          
+          // Acción al hacer click: Login
+          authBtn.onclick = async () => {
+            await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: `${window.location.origin}/dashboard`
+              }
+            });
+          };
+        }
+      }
+
+      // Ejecutar al cargar
+      updateAuthUI();
+
+      // Escuchar cambios de estado (por si expira la sesión mientras navega)
+      supabase.auth.onAuthStateChange((event, session) => {
+        updateAuthUI();
+      });
+    </script>
+
+    <style>
+      /* ESTILOS DEL BOTÓN DE AUTH */
+      .btn-auth {
+        /* Tu padding solicitado */
+        padding: 0.6rem 1.4rem; 
+        
+        border-radius: 50px; /* Bordes redondeados modernos */
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        font-family: var(--font-main);
+      }
+
+      /* Modo Login (Llamativo) */
+      .login-mode {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        border-color: var(--text-primary);
+      }
+      .login-mode:hover {
+        background: transparent;
+        color: var(--text-primary);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      }
+
+      /* Modo Logout (Sutil / Advertencia) */
+      .logout-mode {
+        background: transparent;
+        border: 1px solid var(--text-secondary);
+        color: var(--text-secondary);
+        opacity: 0.8;
+      }
+      .logout-mode:hover {
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+        opacity: 1;
+      }
+    </style>
+  </body>
+</html>
+</file>
+
+<file path="src/lib/courses/aleman1/sessions/w02.js">
+// src/lib/courses/aleman1/sessions/w02.js
+export default {
+  id: 'a1-w02',
+  level: 'aleman1',
+  slug: 'w02',
+  title: 'Woche 2: Zahlen & Herkunft',
+  type: 'guided',
+  
+  instructions: {
+    intro: 'Heute üben wir die Zahlen und sagen, woher wir kommen.',
+    grammarReminder: [
+      'Wie alt bist du? - Ich bin ... Jahre alt.',
+      'Woher kommst du? - Ich komme aus ...',
+      'Zahlen: eins, zwei, drei ... zehn, zwanzig...'
+    ]
+  },
+
+  activity: {
+    title: 'Übung: Meine Daten',
+    parts: [
+      {
+        id: 'part1',
+        label: 'Zahlen schreiben',
+        help: 'Schreibe diese Zahlen als Wort: 5, 8, 12, 20',
+        placeholder: 'Beispiel: fünf, acht...',
+        rows: 2
+      },
+      {
+        id: 'part2',
+        label: 'Über dich',
+        help: 'Antworte: Wie alt bist du? Woher kommst du?',
+        placeholder: 'Ich bin... Ich komme aus...',
+        rows: 3
+      }
+    ]
+  },
+
+  source: {
+    type: 'youtube',
+    embedUrl: 'https://www.youtube.com/embed/iG985-t8Xoo' // Video über Zahlen (Platzhalter)
+  }
+};
+</file>
+
+<file path="src/lib/courses/aleman2/sessions/w02.js">
+// src/lib/courses/aleman2/sessions/w02.js
+export default {
+  id: 'a2-w02',
+  level: 'aleman2',
+  slug: 'w02',
+  title: 'Woche 2: Mein Tagesablauf und die Uhrzeit',
+  type: 'guided',
+  
+  instructions: {
+    intro: 'Wir beschreiben heute unseren Alltag mit trennbaren Verben und präzisen Zeitangaben.',
+    grammarReminder: [
+      'Trennbare Verben: Das Präfix steht am Ende (z.B. Ich kaufe ein).',
+      'Uhrzeit: "Um wie viel Uhr...?" -> "Um 8 Uhr."',
+      'Akkusativ: Ich sehe den Film (maskulin: den/einen).'
+    ]
+  },
+
+  activity: {
+    title: 'Ein typischer Tag',
+    parts: [
+      {
+        id: 'part1',
+        label: 'Morgenroutine (Trennbare Verben)',
+        help: 'Wann stehst du auf? (aufstehen) Wann fängt dein Kurs an? (anfangen)',
+        placeholder: 'Ich stehe um ... Uhr auf.',
+        rows: 2
+      },
+      {
+        id: 'part2',
+        label: 'Aktivitäten am Mittag/Abend',
+        help: 'Was kaufst du ein? Wen rufst du an? (einkaufen, anrufen)',
+        placeholder: 'Ich kaufe einen Apfel ein. Ich rufe den Lehrer an.',
+        rows: 2
+      },
+      {
+        id: 'part3',
+        label: 'Uhrzeit formal und informal',
+        help: 'Wie spät ist es jetzt? Schreibe es auf zwei Arten.',
+        placeholder: 'Es ist ... Uhr (formal). Es ist ... (informal).',
+        rows: 2
+      }
+    ]
+  },
+
+  source: {
+    type: 'youtube',
+    embedUrl: 'https://www.youtube.com/embed/MvYMa9mXpG8' // Beispiel-Video zu Tagesablauf
+  }
+};
+</file>
+
+<file path="src/lib/domain/schemas/week-context.schema.ts">
+// src/lib/domain/schemas/week-context.schema.ts
+import { z } from "zod";
+
+/**
+ * Wochenkontext Schema
+ * Absolute Quelle der Wahrheit für den Unterricht
+ * 
+ * Este schema cubre el programa completo institucional de Alemán 1 y Alemán 2
+ * de la Universidad Autónoma Metropolitana - Azcapotzalco
+ */
+
+// ============================================================================
+// SUB-SCHEMAS REUTILIZABLES
+// ============================================================================
+
+/**
+ * Schema para números cardinales
+ */
+const ZahlenSchema = z.object({
+  kardinale: z.object({
+    gelernt: z.boolean(),
+    range: z.object({
+      von: z.number().int().min(0).optional(),
+      bis: z.number().int().optional()
+    }).optional()
+  }).optional()
+});
+
+/**
+ * Schema para artículos (bestimmt, unbestimmt, negativ)
+ */
+const ArtikelSchema = z.object({
+  bestimmter: z.object({
+    gelernt: z.boolean(),
+    formen: z.array(z.enum(["der", "die", "das"])).optional()
+  }).optional(),
+  unbestimmter: z.object({
+    gelernt: z.boolean(),
+    formen: z.array(z.enum(["ein", "eine"])).optional()
+  }).optional(),
+  negativer: z.object({
+    gelernt: z.boolean(),
+    formen: z.array(z.enum(["kein", "keine"])).optional()
+  }).optional()
+});
+
+/**
+ * Schema para conjugación de verbos
+ */
+const KonjugationSchema = z.object({
+  verben: z.array(z.string()), // Lista de verbos vistos
+  personalpronomen: z.array(z.string()).optional(),
+  regelmäßig: z.array(z.string()).optional(),
+  unregelmäßig: z.array(z.string()).optional()
+});
+
+/**
+ * Schema para verbos trennbares
+ */
+const TrennbareVerbenSchema = z.object({
+  gelernt: z.boolean(),
+  prefixe: z.array(z.string()).optional(),
+  beispiele: z.array(z.string()).optional() // Ej: "aufstehen", "einkaufen"
+});
+
+/**
+ * Schema para casos (Kasus)
+ */
+const KasusSchema = z.object({
+  nominativ: z.object({
+    gelernt: z.boolean(),
+    verwendung: z.array(z.string()).optional() // ["Subjekt", "nach sein"]
+  }).optional(),
+  akkusativ: z.object({
+    gelernt: z.boolean(),
+    artikel: z.array(z.string()).optional(), // ["den", "einen"]
+    verwendung: z.array(z.string()).optional() // ["Direktes Objekt"]
+  }).optional(),
+  dativ: z.object({
+    gelernt: z.boolean(),
+    artikel: z.array(z.string()).optional(),
+    verwendung: z.array(z.string()).optional()
+  }).optional(),
+  genitiv: z.object({
+    gelernt: z.boolean(),
+    artikel: z.array(z.string()).optional()
+  }).optional()
+});
+
+/**
+ * Schema para Modalverben
+ */
+const ModalverbenSchema = z.object({
+  gelernt: z.boolean(),
+  verben: z.array(z.enum(["mögen", "möchten", "können", "müssen", "dürfen", "wollen", "sollen"])).optional(),
+  konjugiert: z.boolean().optional() // Si se vieron conjugados
+});
+
+/**
+ * Schema para Adverbien
+ */
+const AdverbienSchema = z.object({
+  temporal: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional() // ["heute", "morgen", "jetzt"]
+  }).optional(),
+  modal: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional() // ["gern", "lieber", "am liebsten"]
+  }).optional(),
+  häufigkeit: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional() // ["immer", "oft", "manchmal", "nie"]
+  }).optional()
+});
+
+/**
+ * Schema para Possessivartikel
+ */
+const PossessivartikelSchema = z.object({
+  gelernt: z.boolean(),
+  formen: z.array(z.string()).optional(), // ["mein", "dein", "sein", "ihr", "unser", "euer", "ihr", "Ihr"]
+  nurNominativ: z.boolean().optional() // Si solo se vieron en nominativo
+});
+
+/**
+ * Schema para Negation
+ */
+const NegationSchema = z.object({
+  nicht: z.object({
+    gelernt: z.boolean(),
+    verwendung: z.array(z.string()).optional()
+  }).optional(),
+  kein: z.object({
+    gelernt: z.boolean(),
+    verwendung: z.array(z.string()).optional()
+  }).optional()
+});
+
+/**
+ * Schema para Plural
+ */
+const PluralSchema = z.object({
+  gelernt: z.boolean(),
+  endungen: z.array(z.string()).optional(), // ["-e", "-en", "-er", "-s", "¨-e"]
+  beispiele: z.array(z.object({
+    singular: z.string(),
+    plural: z.string()
+  })).optional()
+});
+
+/**
+ * Schema para gramática completa
+ */
+const GrammatikSchema = z.object({
+  // Estructura de oración
+  verbzweistellung: z.boolean(),
+  aussagesatz: z.boolean().optional(),
+  
+  // Preguntas
+  wFragen: z.array(z.string()).optional(), // Campo específico para W-Fragen
+  jaNeinfragen: z.boolean().optional(),
+  
+  // Casos y artículos
+  kasus: KasusSchema.optional(),
+  artikel: ArtikelSchema.optional(),
+  
+  // Verbos
+  konjugation: KonjugationSchema.optional(),
+  trennbareVerben: TrennbareVerbenSchema.optional(),
+  modalverben: ModalverbenSchema.optional(),
+  
+  // Pronombres y posesivos
+  personalpronomen: z.array(z.string()).optional(),
+  possessivartikel: PossessivartikelSchema.optional(),
+  indefinitpronomen: z.object({
+    gelernt: z.boolean(),
+    formen: z.array(z.enum(["man"])).optional()
+  }).optional(),
+  
+  // Números y plural
+  zahlen: ZahlenSchema.optional(),
+  plural: PluralSchema.optional(),
+  
+  // Negación
+  negation: NegationSchema.optional(),
+  
+  // Adverbios
+  adverbien: AdverbienSchema.optional()
+});
+
+/**
+ * Schema para vocabulario (Wortschatz)
+ */
+const WortschatzSchema = z.object({
+  // Temas generales
+  themen: z.array(z.string()),
+  
+  // Vocabulario específico por categorías
+  alphabet: z.object({
+    gelernt: z.boolean(),
+    buchstabieren: z.boolean().optional()
+  }).optional(),
+  
+  länder: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  sprachen: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  berufe: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  familie: z.object({
+    gelernt: z.boolean(),
+    mitglieder: z.array(z.string()).optional()
+  }).optional(),
+  
+  haushaltsachen: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  schulsachen: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  lebensmittel: z.object({
+    gelernt: z.boolean(),
+    kategorien: z.array(z.string()).optional(), // ["Obst", "Gemüse", "Fleisch"]
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  getränke: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional()
+  }).optional(),
+  
+  verpackungen: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional() // ["Flasche", "Dose", "Packung"]
+  }).optional(),
+  
+  maßnamen: z.object({
+    gelernt: z.boolean(),
+    beispiele: z.array(z.string()).optional() // ["Liter", "Gramm", "Kilo"]
+  }).optional(),
+  
+  wochentage: z.object({
+    gelernt: z.boolean(),
+    alle: z.boolean().optional()
+  }).optional(),
+  
+  uhrzeit: z.object({
+    gelernt: z.boolean(),
+    formal: z.array(z.string()).optional(), // ["Wie spät ist es?", "Es ist... Uhr"]
+    informal: z.array(z.string()).optional() // ["Wie viel Uhr ist es?"]
+  }).optional(),
+  
+  aktivitäten: z.object({
+    gelernt: z.boolean(),
+    wochenende: z.array(z.string()).optional(),
+    tagesablauf: z.array(z.string()).optional()
+  }).optional(),
+  
+  // Expresiones útiles
+  ausdrücke: z.object({
+    begrüßung: z.array(z.string()).optional(),
+    verabschiedung: z.array(z.string()).optional(),
+    restaurant: z.array(z.string()).optional(), // ["Ich möchte bestellen", "Die Rechnung, bitte"]
+    einkaufen: z.array(z.string()).optional()
+  }).optional()
+});
+
+/**
+ * Schema para aspectos sociopragmáticos
+ */
+const SoziopragmatikSchema = z.array(
+  z.enum([
+    // Registro formal/informal
+    "du/Sie",
+    "formelle Situation",
+    "informelle Situation",
+    
+    // Comunicación
+    "nonverbale Kommunikation",
+    "Umgangssprache",
+    "Regionalismen",
+    
+    // Aspectos gramaticales con implicaciones pragmáticas
+    "Präpositionen",
+    "Zeitangaben",
+    
+    // Contextos específicos
+    "Restaurant",
+    "Einkaufen",
+    "Familienstand"
+  ])
+);
+
+/**
+ * Schema para reglas de corrección pedagógica
+ */
+const KorrekturSchema = z.object({
+  darf_korrigieren: z.array(
+    z.enum([
+      // Saludos y despedidas
+      "Begrüßung",
+      "Abschied",
+      
+      // Gramática vista
+      "Verbformen",
+      "Wortstellung",
+      "W-Fragen",
+      "Ja/Nein-Fragen",
+      "Stundenangabe",
+      "Nominativ",
+      "Akkusativ",
+      "Trennbare Verben",
+      "Possessivartikel",
+      "Artikel",
+      "Plural",
+      "Negation",
+      "Modalverben",
+      "Zahlen",
+      
+      // Vocabulario
+      "Vokabular gelernt"
+    ])
+  ),
+  darf_nicht_korrigieren: z.array(
+    z.enum([
+      // Ortografía y puntuación
+      "Großschreibung",
+      "Interpunktion",
+      
+      // Gramática no vista
+      "Nebensätze",
+      "Perfekt",
+      "Präteritum",
+      "Plusquamperfekt",
+      "Futur",
+      "Konjunktiv",
+      "Passiv",
+      "Artikeldeklination",
+      "Dativ",
+      "Genitiv",
+      "Reflexivpronomen",
+      "Relativsätze",
+      "Infinitiv mit zu",
+      
+      // Temas no vistos
+      "Vokabular nicht gelernt"
+    ])
+  ),
+  max_fehler: z.number().int().min(1).max(5),
+  ueberkorrektur_vermeiden: z.boolean(),
+  
+  // Estrategia pedagógica
+  fokus: z.array(z.string()).optional(), // En qué enfocarse esta semana
+  toleranz: z.enum(["niedrig", "mittel", "hoch"]).optional() // Nivel de tolerancia a errores
+});
+
+// ============================================================================
+// SCHEMA PRINCIPAL
+// ============================================================================
+
+export const WochenKontextSchema = z.object({
+  // Metadatos
+  kurs: z.enum(["A1", "A2"]),
+  woche: z.number().int().positive(),
+  title: z.string(),
+  
+  // Contenido visto
+  gelernt: z.object({
+    grammatik: GrammatikSchema,
+    wortschatz: WortschatzSchema,
+    soziopragmatik: SoziopragmatikSchema
+  }),
+  
+  // Contenido NO visto (para evitar correcciones prematuras)
+  nicht_gelernt: z.object({
+    grammatik: z.array(z.string()),
+    wortschatz: z.array(z.string()).optional(),
+    soziopragmatik: z.array(z.string())
+  }),
+  
+  // Reglas de corrección pedagógica
+  korrektur: KorrekturSchema,
+  
+  // Notas adicionales opcionales
+  notizen: z.object({
+    schwerpunkt: z.string().optional(), // Punto focal de la semana
+    warnung: z.array(z.string()).optional(), // Advertencias pedagógicas
+    tipps: z.array(z.string()).optional() // Tips para el estudiante
+  }).optional()
+});
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export type WochenKontext = z.infer<typeof WochenKontextSchema>;
+export type Grammatik = z.infer<typeof GrammatikSchema>;
+export type Wortschatz = z.infer<typeof WortschatzSchema>;
+export type Korrektur = z.infer<typeof KorrekturSchema>;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Valida un contexto semanal contra el schema
+ * @param context - Contexto a validar
+ * @returns Objeto parseado y validado
+ * @throws ZodError si la validación falla
+ */
+export function validateWochenKontext(context: unknown): WochenKontext {
+  return WochenKontextSchema.parse(context);
+}
+
+/**
+ * Valida un contexto semanal de forma segura
+ * @param context - Contexto a validar
+ * @returns { success: true, data } o { success: false, error }
+ */
+export function safeValidateWochenKontext(context: unknown) {
+  return WochenKontextSchema.safeParse(context);
+}
+</file>
+
+<file path="src/lib/services/persistence/submissions.ts">
+// src/lib/services/persistence/submissions.ts
+import { supabase } from '@/lib/supabase';
+import type { SubmissionInput } from '@/lib/domain/schemas/submission.schema';
+
+// Extendemos el tipo base del input con los datos generados por el servidor (Feedback e IA)
+interface SaveSubmissionOptions extends SubmissionInput {
+  aiFeedback: string;
+  pedagogicalContext?: any; // Contexto opcional para auditoría futura
+}
+
+/**
+ * Guarda la entrega del estudiante en Supabase.
+ * Asume que los datos ya fueron validados por Zod en el API route.
+ */
+export async function saveSubmission({
+  firstName,
+  lastName,
+  level,
+  week,
+  content,
+  aiFeedback,
+  pedagogicalContext = {},
+}: SaveSubmissionOptions) {
+  
+  // 1. Obtener usuario autenticado (Requerido por la tabla 'submissions' campo user_id)
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    console.error("Intento de envío sin sesión activa");
+    throw new Error('Debes iniciar sesión para guardar tu progreso.');
+  }
+
+  // 2. Construcción de datos derivados
+  // Normalizamos nombres (Trim y mayúscula inicial opcional si quisieras)
+  const cleanFirstName = firstName.trim();
+  const cleanLastName = lastName.trim();
+  const fullName = `${cleanFirstName} ${cleanLastName}`;
+  
+  // Generamos el ID de sesión consistente (Ej: 'aleman1-w01')
+  // Aseguramos que 'week' tenga formato wXX por si acaso viene como número
+  const formattedWeek = week.startsWith('w') ? week : `w${week.toString().padStart(2, '0')}`;
+  const sessionId = `${level}-${formattedWeek}`;
+
+  // 3. Inserción en Base de Datos
+  const { data, error } = await supabase
+    .from('submissions')
+    .insert({
+      // -- Vinculación de Usuario --
+      user_id: user.id,
+      user_email: user.email,
+
+      // -- Datos del Estudiante (Nuevos campos atomizados + Legacy) --
+      first_name: cleanFirstName,
+      last_name: cleanLastName,
+      student_name: fullName, // Mantenemos para compatibilidad visual rápida en dashboard
+
+      // -- Contexto de la Lección --
+      level: level,       // 'aleman1' | 'aleman2'
+      week_id: formattedWeek, // 'w01'
+      session_id: sessionId,
+
+      // -- Contenido y Feedback --
+      content_text: content,
+      ai_feedback: aiFeedback,
+      pedagogical_context: pedagogicalContext, // JSONB para guardar qué se evaluó
+
+      // -- Metadatos fijos --
+      submission_type: 'written',
+      activity_mode: 'guided',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error crítico guardando submission en Supabase:', error);
+    throw new Error(`Error al guardar: ${error.message}`);
+  }
+
+  return { success: true, data };
+}
+</file>
+
+<file path="src/pages/dashboard/index.astro">
+---
+import Layout from '../../layouts/Layout.astro';
+import { supabase } from '../../lib/supabase';
+import { COURSE_CONFIG } from '../../lib/roadmap';
+import CourseList from '../../components/CourseList.astro';
+
+// 1. Protección de Ruta (Server Side)
+const { cookies, redirect } = Astro;
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/");
+}
+
+// 2. Obtener Sesión y Datos
+let session;
+try {
+  const { data, error } = await supabase.auth.setSession({
+    access_token: accessToken.value,
+    refresh_token: refreshToken.value,
+  });
+  if (error) throw error;
+  session = data.session;
+} catch (error) {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/");
+}
+
+// 3. Obtener Perfil (Nivel del usuario)
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', session?.user?.id)
+  .single();
+
+// Nivel por defecto si falla la DB
+const userLevel = profile?.assigned_level?.replace('-', '') || 'aleman1'; // Limpieza 'aleman-1' -> 'aleman1'
+
+// 4. Obtener Historial (Opcional, para mostrar abajo)
+const { data: submissions } = await supabase
+  .from('submissions')
+  .select('*')
+  .eq('user_id', session?.user?.id)
+  .order('created_at', { ascending: false })
+  .limit(5);
+
+const email = session?.user?.email;
+---
+
+<Layout title="Dashboard | Huhugerman">
+  <main class="container">
+    
+    <div style="margin-bottom: 3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem;">
+      <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">
+        Hola, <span style="color: var(--accent-primary);">{email?.split('@')[0]}</span> 👋
+      </h1>
+      <p style="color: var(--text-secondary);">
+        Nivel Actual: <strong style="text-transform: uppercase; color: var(--text-primary);">{userLevel}</strong>
+      </p>
+    </div>
+
+    <CourseList levelId={userLevel} />
+
+    {submissions && submissions.length > 0 && (
+      <div style="margin-top: 5rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+          <span>📜</span> Historial Reciente
+        </h2>
+        
+        <div class="grid">
+          {submissions.map((sub) => (
+            <div class="card" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <span class="status-badge" style="font-size: 0.7rem;">{sub.session_id || 'Práctica'}</span>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                  {new Date(sub.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0;">
+                {sub.content_text?.substring(0, 80)}...
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+  </main>
+</Layout>
+</file>
+
+<file path=".gitignore">
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+.vercel
+</file>
+
+<file path="astro.config.mjs">
+// @ts-check
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+// https://astro.build/config
+export default defineConfig({
+  adapter: vercel(),
+  output: 'server', // 👈 AÑADE ESTA LÍNEA
+});
+</file>
+
+<file path="README.md">
+## huhugerman-portal
+
+A mobile-first, operational frontend portal for German language courses.
+Designed to minimize cognitive load for students while acting as a clear presentation layer for backend automation and technical documentation.
+
+This repository represents the **student-facing interface** of the huhugerman ecosystem.
+
+---
+
+## 🎯 Project Purpose
+
+The portal is designed under a **Customer Success Engineering mindset**, applied to education:
+
+* **Zero Friction Access**
+  Students reach courses, forms, and materials without navigation overhead.
+
+* **Cognitive Clarity**
+  A minimalist UI focused on learning outcomes, not interface exploration.
+
+* **Operational Transparency**
+  Frontend actions map directly to backend automations (intake, tracking, progression).
+
+---
+
+## 🧠 Design Principles
+
+1. **Simple-First**
+   Reduced component surface area to lower maintenance and onboarding cost.
+
+2. **Functional-First**
+   Every UI element exists to support a concrete learning or operational goal.
+
+3. **Mobile-First**
+   The layout is optimized for small screens first, then progressively enhanced.
+
+4. **Linear Flow (No Navbar)**
+   Navigation is replaced by contextual CTAs to avoid decision fatigue.
+
+---
+
+## 🏗️ Technical Stack
+
+* **Framework:** [Astro](https://astro.build/)
+  Static-first architecture for speed, SEO, and long-term stability.
+
+* **Styling:** Native CSS3
+  Custom design system (dark mode, minimal, functional).
+
+* **Deployment:** [Vercel](https://vercel.com/)
+  Edge-ready, Git-based deployments.
+
+* **Forms & Automation:** Google Apps Script (GAS)
+  Used for intake, credential handling, and backend workflows.
+
+---
+
+## 🧩 Architecture Overview
+
+* **Home**
+
+  * Two primary course cards (Alemán 1, Alemán 2)
+  * Inline disclosure of intake forms via `<details>`
+
+* **Roadmap**
+
+  * 10-week asynchronous reinforcement structure
+  * Mirrors in-person sessions (Monday & Wednesday)
+
+* **Toolbox**
+
+  * Curated external linguistic resources
+  * No content duplication, only trusted references
+
+---
+
+## 🔗 Ecosystem Relationship
+
+This frontend is conceptually and operationally coupled with:
+
+👉 **[huhugerman-cse](https://github.com/yassergandhi/huhugerman-cse)**
+
+That repository contains:
+
+* Business logic
+* Automation scripts
+* Operational documentation
+* CSE-oriented architectural decisions
+
+This portal acts as the **presentation layer** of that system.
+
+---
+
+## 🛠️ Local Development
+
+```bash
+# Clone repository
+git clone https://github.com/yassergandhi/huhugerman-portal.git
+
+# Install dependencies
+npm install
+
+# Run local dev server
+npm run dev
+```
+
+Astro will start a local server with hot reload enabled.
+
+---
+
+## 🚀 Deployment
+
+The project is deployed via **Vercel**, using Git-based continuous deployment.
+
+Domain management is handled through **Cloudflare DNS**.
+
+---
+
+## 📄 License
+
+Private / Educational use.
+All rights reserved.
+</file>
+
+<file path="src/components/GuidedActivity.astro">
+---
+// src/components/GuidedActivity.astro
+import { getBackLink } from '@lib/navigation';
+
+// Aseguramos tipado básico para las props
+const { lesson } = Astro.props;
+const backLink = getBackLink(lesson);
+
+// Fallback seguro para el ID de la semana y nivel si no vienen explícitos
+const weekId = lesson.weekId || lesson.id || 'w01'; 
+const levelId = lesson.level || 'aleman1';
+---
+
+<div class="container">
+  <div class="navbar" style="padding:0; border:none; margin-bottom:1rem;">
+    <a
+      href={backLink.href}
+      style="color:var(--accent-primary); font-weight:bold; display:flex; align-items:center; gap:5px;"
+    >
+      <span>←</span> {backLink.label}
+    </a>
+  </div>
+
+  <h1>{lesson.title}</h1>
+
+  <div class="card activity-notice">
+    <h3>ℹ️ Actividad formativa</h3>
+    <p>
+      Tu entrega es lo que cuenta. El feedback te ayuda a mejorar y la entrega se traduce después en la calificación institucional.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>📝 Instrucciones de la Actividad</h3>
+    <p>{lesson.instructions.intro}</p>
+    <ul>
+      {lesson.instructions.grammarReminder.map((item: string) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  </div>
+
+  {lesson.source?.type === 'youtube' && (
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="position:relative; padding-bottom:56.25%;">
+        <iframe
+          src={lesson.source.embedUrl}
+          style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;"
+          allowfullscreen
+        />
+      </div>
+    </div>
+  )}
+
+  <form id="activity-form" data-level={levelId} data-week={weekId}>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label for="firstName" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Nombre(s)*</label>
+        <input 
+          type="text" 
+          id="firstName" 
+          name="firstName" 
+          required
+          placeholder="Ej. Juan"
+          style="width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:8px;"
+        />
+      </div>
+      <div>
+        <label for="lastName" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Apellido(s)*</label>
+        <input 
+          type="text" 
+          id="lastName" 
+          name="lastName" 
+          required
+          placeholder="Ej. Pérez"
+          style="width:100%; padding:0.8rem; border:1px solid #ddd; border-radius:8px;"
+        />
+      </div>
+    </div>
+
+    <h2>{lesson.activity.title}</h2>
+    
+    {lesson.activity.parts.map((part: any, index: number) => (
+      <div style="margin-bottom:1.5rem;">
+        <label for={part.id} class="activity-label">{part.label}</label>
+        <p style="font-size:0.8rem; opacity:.7;">{part.help}</p>
+        <textarea
+          id={part.id}
+          name={part.id}
+          data-label={part.label} 
+          rows={part.rows || 4}
+          placeholder={part.placeholder}
+          required
+          style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;"
+        />
+      </div>
+    ))}
+
+    <button type="submit" id="submit-btn" class="btn" style="width:100%;">
+      Enviar respuestas
+    </button>
+  </form>
+
+  <div
+    id="feedback-container"
+    class="card"
+    style="display:none; margin-top:2rem; border-left:4px solid var(--accent-secondary);"
+  >
+    <h3 style="margin-top:0;">📘 Feedback del Profesor</h3>
+    <div id="feedback-content"></div>
+    
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+      <p style="font-weight: bold; color: var(--accent-primary); display: flex; align-items: center; gap: 0.5rem;">
+        ✅ <span>Actividad entregada</span>
+      </p>
+      <p style="font-size: 0.85rem; opacity: 0.8;">
+        Tu respuesta ha sido registrada correctamente en el sistema.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Script del Cliente
+  const form = document.getElementById('activity-form') as HTMLFormElement;
+  const btn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const feedbackContainer = document.getElementById('feedback-container');
+  const feedbackContent = document.getElementById('feedback-content');
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // 1. Obtener datos básicos
+      const firstNameInput = document.getElementById('firstName') as HTMLInputElement;
+      const lastNameInput = document.getElementById('lastName') as HTMLInputElement;
+      
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      const level = form.dataset.level; // Leído desde el HTML
+      const week = form.dataset.week;   // Leído desde el HTML
+
+      // Validación simple
+      if (firstName.length < 2 || lastName.length < 2) {
+        alert('⚠️ Por favor ingresa tu nombre y apellido completos.');
+        return;
+      }
+
+      // 2. Recolección dinámica del contenido (independiente del número de partes)
+      let content = "";
+      const textareas = form.querySelectorAll('textarea');
+      let hasContent = false;
+
+      textareas.forEach((area) => {
+        const value = (area as HTMLTextAreaElement).value.trim();
+        if (value) {
+          hasContent = true;
+          // Usamos el label del atributo data, o el ID como fallback
+          const label = area.getAttribute('data-label') || area.id.toUpperCase();
+          content += `[${label}]\n${value}\n\n`;
+        }
+      });
+
+      if (!hasContent) {
+        alert('⚠️ Escribe al menos una respuesta antes de enviar.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Enviando...';
+
+      // 3. Construcción del Payload (Coincide con SubmissionInputSchema)
+      const payload = {
+        firstName,
+        lastName,
+        level,   // Ej: 'aleman1'
+        week,    // Ej: 'w01'
+        content: content.trim(),
+        email: "" // Opcional por ahora
+      };
+
+      try {
+        const response = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok || (result.error)) {
+          throw new Error(result.error || 'Error en el servidor');
+        }
+        
+        // 4. Mostrar Feedback
+        if (feedbackContent && feedbackContainer) {
+          feedbackContent.innerHTML = result.feedback || "Respuesta registrada.";
+          feedbackContainer.style.display = 'block';
+          feedbackContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+      } catch (err: any) {
+        console.error('Error:', err);
+        alert(`❌ Error: ${err.message || 'No se pudo enviar la actividad'}`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Enviar respuestas';
+      }
+    });
+  }
+</script>
+</file>
+
+<file path="src/components/LessonUI.astro">
+---
+const { session } = Astro.props;
+---
+
+<form id="activity-form" class="card">
+  <h2 style="font-size: 1.2rem; margin-bottom: 1.5rem;">
+    {session.activity.title}
+  </h2>
+
+  {session.activity.parts.map((part) => (
+    <div style="margin-bottom: 1.5rem;">
+      <label>{part.label}</label>
+      <p style="font-size: 0.8rem; opacity: 0.7; margin-top: -5px;">
+        {part.help}
+      </p>
+      <textarea
+        id={part.id}
+        rows={part.rows}
+        placeholder={part.placeholder}
+        required
+      ></textarea>
+    </div>
+  ))}
+
+  <button type="submit" id="submit-btn" class="btn" style="width:100%;">
+    Enviar y ver Feedback
+  </button>
+
+  <p id="status-msg" style="text-align:center; margin-top:1rem;"></p>
+</form>
+
+<script>
+  const form = document.getElementById('activity-form');
+  const btn = document.getElementById('submit-btn');
+  const status = document.getElementById('status-msg');
+
+  const loadingMessages = [
+    "IA analizando...",
+    "Consultando al tutor...",
+    "Corrigiendo gramática...",
+    "Preparando feedback..."
+  ];
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+
+    let msgIndex = 0;
+    btn.innerHTML = loadingMessages[0];
+
+    const interval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % loadingMessages.length;
+      btn.innerHTML = loadingMessages[msgIndex];
+    }, 2500);
+
+    const parts = [...form.querySelectorAll('textarea')];
+    const contentText = parts
+      .map(p => `[${p.id.toUpperCase()}]\n${p.value}`)
+      .join('\n\n');
+
+    const formData = new FormData();
+    formData.append('session_id', session.id);
+    formData.append('content_text', contentText);
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await res.json();
+      clearInterval(interval);
+
+      if (!res.ok) throw new Error(result.error || 'Submit failed');
+
+      window.location.href = `/feedback/${result.submission_id}`;
+    } catch (err) {
+      clearInterval(interval);
+      status.innerText = "⚠️ Error al enviar. Intenta de nuevo.";
+      btn.disabled = false;
+      btn.innerText = "Reintentar";
+    }
+  });
+</script>
+</file>
+
+<file path="src/pages/aleman1/index.astro">
+---
+import Layout from '@layouts/Layout.astro';
+import CourseList from '@components/CourseList.astro';
+---
+
+<Layout title="Alemán 1 | Huhugerman">
+  <CourseList levelId="aleman1" />
+</Layout>
+</file>
+
+<file path="src/pages/aleman2/index.astro">
+---
+//src/pages/aleman2/index.astro
+
+import Layout from '@layouts/Layout.astro';
+import CourseList from '@components/CourseList.astro';
+---
+
+<Layout title="Alemán 2 | Huhugerman">
+  <CourseList levelId="aleman2" />
+</Layout>
+</file>
+
+<file path="src/pages/learn/[level]/[week].astro">
+---
+// src/pages/learn/[level]/[week].astro
+import Layout from '@/layouts/Layout.astro';
+import GuidedActivity from '@/components/GuidedActivity.astro';
+import LessonUI from '@/components/LessonUI.astro'; // Asegúrate de tener este componente o quitar la referencia si no lo usas
+
+// 1. Obtener parámetros de la URL
+const { level, week } = Astro.params;
+
+// 2. Validación de seguridad básica
+if (!level || !week) {
+  return Astro.redirect('/404');
+}
+
+// 3. Normalización de URL (Auto-corrección de 'week1' a 'w01')
+// Si el usuario entra a /week1, lo mandamos a /w01 para que coincida con tu archivo w01.js
+const weekMatch = week.match(/^week(\d+)$/i);
+if (weekMatch) {
+  const weekNum = weekMatch[1].padStart(2, '0'); // 1 -> 01
+  return Astro.redirect(`/learn/${level}/w${weekNum}`);
+}
+
+let lesson = null;
+
+try {
+  // 4. Importación Dinámica (Ruta relativa basada en tu TREE)
+  // Estás en: src/pages/learn/[level]/[week].astro
+  // Los cursos están en: src/lib/courses/[level]/sessions/[week].js
+  // Ruta relativa: ../../../lib/courses/...
+  
+  const lessonModule = await import(`../../../lib/courses/${level}/sessions/${week}.js`);
+  
+  // Soporte para export default o module.exports
+  lesson = lessonModule.default || lessonModule;
+
+  // Inyectamos IDs para que los componentes hijos sepan el contexto
+  lesson.level = level;
+  lesson.weekId = week;
+
+} catch (error) {
+  console.error(`❌ [Error de Carga] No se encontró la lección: ${level}/${week}`);
+  console.error(`   Intentado en ruta: ../../../lib/courses/${level}/sessions/${week}.js`);
+  
+  // Si el archivo no existe, NO crasheamos. Redirigimos a 404.
+  return Astro.redirect('/404');
+}
+
+// 5. Verificación final de integridad
+if (!lesson || !lesson.title) {
+  console.error("❌ La lección cargó pero le falta el título o datos esenciales.");
+  return Astro.redirect('/404');
+}
+---
+
+<Layout title={lesson.title}>
+  {lesson.type === 'guided' || lesson.activity ? (
+    <GuidedActivity lesson={lesson} />
+  ) : (
+    /* Fallback para lecciones puramente de contenido si existen */
+    <LessonUI lesson={lesson} />
+  )}
+</Layout>
+</file>
+
+<file path="src/styles/global.css">
+/* ===================================================
+   huhuGERMAN - GLOBAL DESIGN SYSTEM (Master Synthwave)
+   =================================================== */
+
+:root {
+  --bg-color: #0b021d;
+  --surface-color: #160a2f;
+  --text-primary: #ffffff;
+  --text-secondary: #aed7f5;
+  --accent-primary: #2ef99e;   /* Neon Green */
+  --accent-secondary: #64e232; /* Lime Green */
+  --accent-heading: #ff5fd2;      /* Amarillo suave */
+  --accent-heading-soft: rgba(255, 209, 102, 0.12);
+  --accent-notice: #ffd166;
+  --border-color: #2d1b54;
+  --input-bg: #080116;         
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --max-width-mobile: 640px;
+  --max-width-desktop: 900px;
+}
+
+/* --- 1. RESET & BASE (Corrección de espacios) --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body, h1, h2, h3, p, pre, blockquote, figure {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* --- 2. LAYOUT --- */
+.container {
+  max-width: var(--max-width-mobile);
+  margin: 0 auto;
+  padding: 2.5rem 1.2rem 5rem;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: var(--max-width-desktop);
+  }
+}
+
+/* --- 3. TYPOGRAPHY --- */
+h1, h2 {
+  margin: 0 0 0.6em;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--accent-heading);
+  text-shadow: 0 0 12px rgba(255, 95, 210, 0.35);
+}
+
+h3 {
+  color: var(--accent-primary);
+}
+p {
+  margin: 0.4rem 0 1.2rem;
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: filter 0.2s;
+}
+
+a:hover {
+  filter: brightness(1.2);
+}
+
+/* --- 4. COMPONENTS --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2.5rem;
+}
+
+.brand {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--text-primary) !important;
+}
+
+.card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.8rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  margin-bottom: 1.5rem;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.card:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+.activity-notice {
+  background-color: rgba(255, 209, 102, 0.08);
+  border: 1.5px dashed rgba(255, 209, 102, 0.5);
+  color: var(--text-secondary);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(46, 249, 158, 0.15) inset;
+}
+
+.activity-notice h3 {
+  color: var(--accent-notice);
+  font-size: 0.85rem;
+  margin: 0 0 0.15rem 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.activity-notice p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+
+
+/* --- 5. BUTTONS --- */
+.btn {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--accent-primary), #00a2ff);
+  color: #0b021d !important;
+  padding: 0.9rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  transition: box-shadow 0.2s, transform 0.1s;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.btn:hover {
+  box-shadow: 0 0 20px var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--border-color);
+  color: var(--text-secondary) !important;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* --- 6. FORMS --- */
+label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+input, textarea {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary) !important;
+  border-radius: 10px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(46, 249, 158, 0.2);
+}
+
+::placeholder {
+  color: rgba(174, 215, 245, 0.4);
+}
+
+/* --- 7. FEEDBACK & COMPARISON --- */
+.feedback-card {
+  background: #080116 !important;
+  border: 2px solid var(--accent-primary) !important;
+  color: var(--text-secondary) !important;
+  padding: 1.8rem;
+  border-radius: 14px;
+  box-shadow: 0 0 25px rgba(46, 249, 158, 0.1);
+  margin-top: 2rem;
+}
+
+.feedback-card b, .feedback-card strong {
+  color: var(--accent-primary);
+  font-weight: 800;
+}
+
+.feedback-card h3 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+  color: var(--accent-primary);
+}
+
+.comparison-box {
+  background: #0d0421 !important;
+  border: 1px solid var(--border-color) !important;
+  border-left: 4px solid var(--accent-primary) !important;
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+  color: var(--text-primary) !important;
+}
+
+.comparison-box .label {
+  color: var(--accent-primary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.05em;
+}
+
+.comparison-box .content {
+  color: var(--text-secondary);
+  font-family: 'Courier New', Courier, monospace;
+  display: block;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.comparison-box .content:last-child {
+  margin-bottom: 0;
+}
+
+/* --- 8. UTILS & ANIMATIONS --- */
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.locked {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 800;
+  background: rgba(46, 249, 158, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  text-transform: uppercase;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(46, 249, 158, 0.2);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@lib/*": ["src/lib/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  }
+}
+</file>
+
+<file path="src/pages/api/submit.ts">
+// src/pages/api/submit.ts
+import type { APIRoute } from 'astro';
+import { SubmissionInputSchema } from '@/lib/domain/schemas/submission.schema';
+import { saveSubmission } from '@/lib/services/persistence/submissions';
+import { buildPedagogicalPrompt } from '@/lib/ai/prompt-builder';
+// import { DeepSeekClient } from '@/lib/ai/providers/deepseek'; // Descomentar cuando integres el cliente real
+
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    const rawBody = await request.json();
+
+    // 1. Validación Estricta con Zod (Fails fast)
+    const parseResult = SubmissionInputSchema.safeParse(rawBody);
+
+    if (!parseResult.success) {
+      return new Response(JSON.stringify({ 
+        error: "Datos inválidos", 
+        details: parseResult.error.format() 
+      }), { status: 400 });
+    }
+
+    const data = parseResult.data;
+
+    // 2. Orquestación del Feedback (Simulada por ahora, lista para conectar)
+    // const prompt = await buildPedagogicalPrompt(data.level, data.week, data.content);
+    // const aiFeedback = await DeepSeekClient.evaluate(prompt); 
+    
+    // Mock temporal para mantener funcionalidad mientras conectas el prompt-builder real
+    const aiFeedback = `Feedback preliminar para ${data.firstName}: Buen trabajo con el texto. (IA pendiente de conexión final)`;
+
+    // 3. Persistencia (Guardamos nombre y apellido por separado)
+    const savedRecord = await saveSubmission({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      level: data.level,
+      week: data.week,
+      content: data.content,
+      aiFeedback: aiFeedback
+    });
+
+    if (!savedRecord) {
+      throw new Error("Error al guardar en base de datos");
+    }
+
+    return new Response(JSON.stringify({
+      message: "Actividad recibida correctamente",
+      feedback: aiFeedback
+    }), { status: 200 });
+
+  } catch (error) {
+    console.error("Error en submit:", error);
+    return new Response(JSON.stringify({ error: "Error interno del servidor" }), { status: 500 });
+  }
+};
+</file>
+
+<file path="src/pages/index.astro">
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Inicio">
+  <div class="container">
+  <h1 style="text-align:center; margin-bottom: 0.5rem;">
+    Elige tu curso de alemán
+  </h1>
+
+  <p style="text-align:center; margin-bottom: 2rem;">
+    Wähle deinen Kurs
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <span class="status-badge">Primer contacto</span>
+      <h2>🇩🇪 Alemán 1</h2>
+      <p>
+        Empieza desde cero. Aprende a presentarte, hacer preguntas y hablar de ti,
+        tu familia y tu entorno en alemán, paso a paso.
+      </p>
+      <button class="btn js-course-btn" data-url="/aleman1">
+        Ir al Curso
+      </button>
+    </div>
+
+    <div class="card">
+      <span class="status-badge">Uso cotidiano</span>
+      <h2>🇩🇪 Alemán 2</h2>
+      <p>
+        Usa el alemán en situaciones reales: pedir comida, comprar,
+        hablar con amigos y contar qué haces el fin de semana.
+      </p>
+      <button class="btn js-course-btn" data-url="/aleman2">
+        Ir al Curso
+      </button>
+    </div>
+  </div>
+</div>
+
+
+  <script>
+    import { supabase } from '../lib/supabase';
+    
+    // Interceptamos los clicks para asegurar que estén logueados
+    const buttons = document.querySelectorAll('.js-course-btn');
+    
+    buttons.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const url = e.target.getAttribute('data-url');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          // Si no hay sesión, loguear primero y redirigir al curso
+          await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + url }
+          });
+        } else {
+          window.location.href = url;
+        }
+      });
+    });
+  </script>
+</Layout>
+</file>
+
+<file path="package.json">
+{
+  "name": "huhugerman-portal",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "engines": {
+  "node": "20.x"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^8.0.4",
+    "@supabase/supabase-js": "^2.93.2",
+    "astro": "^5.16.15",
+    "openai": "^6.17.0",
+    "zod": "^3.25.76"
+  }
+}
+</file>
+
+</files>
