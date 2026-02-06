@@ -2,101 +2,156 @@
 import Layout from '../../layouts/Layout.astro';
 import { supabase } from '../../lib/supabase';
 
-const { cookies, redirect } = Astro;
+/* --- 1. LÓGICA DEL SERVIDOR (SSR) --- */
+const { cookies } = Astro;
 const accessToken = cookies.get("sb-access-token");
 const refreshToken = cookies.get("sb-refresh-token");
 
-if (!accessToken || !refreshToken) {
-  return redirect("/");
-}
+let initialData = { part1: "", part2: "", part3: "" };
+let user = null;
 
-const { data: { session } } = await supabase.auth.setSession({
-  access_token: accessToken.value,
-  refresh_token: refreshToken.value,
-});
+// Intentamos cargar datos en el servidor si las cookies están disponibles
+if (accessToken && refreshToken) {
+  const { data } = await supabase.auth.setSession({
+    access_token: accessToken.value,
+    refresh_token: refreshToken.value,
+  });
+  user = data.session?.user;
 
-if (!session) return redirect("/");
+  if (user) {
+    const { data: sub } = await supabase
+      .from('submissions')
+      .select('content_text')
+      .eq('session_id', 'a1-w2')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-const { data: submission } = await supabase
-  .from('submissions')
-  .select('content_text')
-  .eq('session_id', 'a1-w2')
-  .eq('user_id', session.user.id)
-  .maybeSingle();
-
-const fullText = submission?.content_text || "";
-let part1 = "", part2 = "", part3 = "";
-
-if (fullText) {
-  const parts = fullText.split(/\[.*?\]/); 
-  if (parts.length > 1) part1 = parts[1]?.trim() || "";
-  if (parts.length > 2) part2 = parts[2]?.trim() || "";
-  if (parts.length > 3) part3 = parts[3]?.trim() || "";
+    if (sub?.content_text) {
+      const parts = sub.content_text.split(/\[.*?\]/);
+      initialData.part1 = parts[1]?.trim() || "";
+      initialData.part2 = parts[2]?.trim() || "";
+      initialData.part3 = parts[3]?.trim() || "";
+    }
+  }
 }
 ---
 
-<Layout title="W-Fragen und Zahlen">
+<Layout title="Woche 2: W-Fragen und Zahlen bis 12">
   <div class="container">
     <div class="navbar" style="padding: 0; border: none; margin-bottom: 1rem;">
-      <a href="/dashboard" style="color:var(--accent-primary); font-weight:bold;">← Dashboard</a>
+      <a href="/dashboard" style="color:var(--accent-primary); font-weight:bold; display: flex; align-items: center; gap: 5px;">
+        <span>←</span> Volver al Dashboard
+      </a>
     </div>
 
-    <h1>Woche 2: W-Fragen und Zahlen</h1>
+    <h1>Woche 2: W-Fragen und Zahlen bis 12</h1>
 
+    <div class="card" style="border-left: 4px solid var(--accent-primary); background: rgba(46, 249, 158, 0.05);">
+      <h3 style="margin-top:0; font-size: 1.1rem;">📝 Instrucciones de la Actividad</h3>
+      <p style="font-size: 0.95rem; color: var(--text-primary);">
+        Practica las <b>W-Fragen</b> y la información personal básica.
+      </p>
+    </div>
+    
     <div class="card" style="margin-bottom: 2rem; text-align:center;">
-      <iframe width="100%" height="315" src="https://www.youtube.com/embed/Yaelm87PTvg" style="max-width:600px;" frameborder="0" allowfullscreen></iframe>
+      <iframe 
+        width="100%" 
+        height="315" 
+        src="https://www.youtube.com/embed/Yaelm87PTvg" 
+        frameborder="0" 
+        allowfullscreen
+        style="max-width: 600px; border-radius: 8px;">
+      </iframe> 
     </div>
 
-    <form id="activity-form" class="card">
-      <div style="margin-bottom: 1.5rem;">
-        <label>1. Tu presentación personal</label>
-        <textarea id="part1" rows="3">{part1}</textarea>
+    <div id="auth-guard">
+      <form id="activity-form" class="card" style="display: none;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Deine Aufgabe</h2>
+
+        <div style="margin-bottom: 1.5rem;">
+          <label>1. Tu presentación personal:</label>
+          <textarea id="part1" rows="3" placeholder="Wie heißt du? Wo wohnst du?">{initialData.part1}</textarea>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <label>2. Presenta a alguna persona del video:</label>
+          <textarea id="part2" rows="3" placeholder="Wer ist das? Wie heißt er/sie?">{initialData.part2}</textarea>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <label>3. Reflexión del video:</label>
+          <textarea id="part3" rows="4" placeholder="¿Qué parte se te hizo fácil?">{initialData.part3}</textarea>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn" style="width:100%;">
+          Enviar y ver Feedback
+        </button>
+      </form>
+
+      <div id="loading-auth" class="card" style="text-align: center; padding: 3rem;">
+        <p>Verificando sesión de estudiante...</p>
       </div>
-      <div style="margin-bottom: 1.5rem;">
-        <label>2. Persona del video</label>
-        <textarea id="part2" rows="3">{part2}</textarea>
-      </div>
-      <div style="margin-bottom: 1.5rem;">
-        <label>3. Reflexión</label>
-        <textarea id="part3" rows="4">{part3}</textarea>
-      </div>
-      <button type="submit" id="submit-btn" class="btn" style="width:100%;">Enviar</button>
-    </form>
+    </div>
   </div>
 </Layout>
 
 <script type="module">
     import { supabase } from '../../lib/supabase';
+
+    // 1. VALIDACIÓN EN EL CLIENTE (Esto rompe el bucle infinito)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      // Si no hay sesión en el navegador, redirigimos al inicio
+      window.location.href = "/";
+    } else {
+      // Si hay sesión, mostramos el formulario y ocultamos el mensaje de carga
+      document.getElementById('activity-form').style.display = 'block';
+      document.getElementById('loading-auth').style.display = 'none';
+    }
+
     const form = document.getElementById('activity-form');
     const btn = document.getElementById('submit-btn');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       btn.disabled = true;
-      btn.innerText = "Procesando...";
+      btn.innerText = "Analizando con IA...";
 
-      const { data: { user } } = await supabase.auth.getUser();
-      const text = `[PRESENTACIÓN]\n${document.getElementById('part1').value}\n\n[PERSONAJE]\n${document.getElementById('part2').value}\n\n[REFLEXIÓN]\n${document.getElementById('part3').value}`;
+      const val1 = document.getElementById('part1').value;
+      const val2 = document.getElementById('part2').value;
+      const val3 = document.getElementById('part3').value;
+
+      const text = `[PRESENTACIÓN]\n${val1}\n\n[PERSONAJE]\n${val2}\n\n[REFLEXIÓN]\n${val3}`;
 
       try {
-        const res = await fetch('/api/submit', {
+        // Enviar a la API de IA
+        const response = await fetch('/api/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text })
         });
-        const result = await res.json();
+        const result = await response.json();
         
-        await supabase.from('submissions').upsert({
-          user_id: user.id,
-          user_email: user.email,
-          session_id: 'a1-w2',
+        if (!result.success) throw new Error(result.error);
+
+        // Guardar en Supabase usando la sesión confirmada del cliente
+        const { error: dbError } = await supabase.from('submissions').upsert({
+          user_id: session.user.id,
+          user_email: session.user.email,
+          session_id: 'a1-w2', 
           content_text: text,
           ai_feedback: result.feedback
         }, { onConflict: 'user_id,session_id' });
 
+        if (dbError) throw dbError;
+
+        // Redirigir al dashboard con el feedback
         window.location.href = `/dashboard?new_feedback=${encodeURIComponent(result.feedback)}`;
+
       } catch (err) {
-        alert("Error: " + err.message);
+        console.error(err);
+        alert("⚠️ Error: " + err.message);
         btn.disabled = false;
         btn.innerText = "Reintentar";
       }
