@@ -108,7 +108,7 @@ import Layout from '../../layouts/Layout.astro';
         const { error: dbError } = await supabase.from('submissions').upsert({
           user_id: user.id,
           user_email: user.email,
-          session_id: 'a1-w1',
+          session_id: 'a1-w2',
           content_text: text,
           ai_feedback: result.feedback
         }, { onConflict: 'user_id,session_id' });
